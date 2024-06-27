@@ -14,7 +14,7 @@ _shtab_hyfetch_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   {-c,--config}"[Configure hyfetch]"
   {-C,--config-file}"[Use another config file]:config_file:"
-  {-p,--preset}"[Use preset]:preset:(rainbow transgender nonbinary agender queer genderfluid bisexual pansexual polysexual omnisexual omniromantic gay-men lesbian abrosexual asexual aromantic aroace1 aroace2 aroace3 autosexual intergender greygender akiosexual bigender demigender demiboy demigirl transmasculine transfeminine genderfaun demifaun genderfae demifae neutrois biromantic1 biromantic2 autoromantic boyflux2 finsexual unlabeled1 unlabeled2 pangender gendernonconforming1 gendernonconforming2 femboy tomboy gendervoid voidgirl voidboy plural beiyang burger)"
+  {-p,--preset}"[Use preset]:preset:(rainbow transgender nonbinary agender queer genderfluid bisexual pansexual polysexual omnisexual omniromantic gay-men lesbian abrosexual asexual aromantic aroace1 aroace2 aroace3 autosexual intergender greygender akiosexual bigender demigender demiboy demigirl transmasculine transfeminine genderfaun demifaun genderfae demifae neutrois biromantic1 biromantic2 autoromantic boyflux2 finsexual unlabeled1 unlabeled2 pangender gendernonconforming1 gendernonconforming2 femboy tomboy gendervoid voidgirl voidboy plural beiyang burger caninekin)"
   {-m,--mode}"[Color mode]:mode:(8bit rgb)"
   {-b,--backend}"[Choose a \*fetch backend]:backend:(neofetch fastfetch fastfetch-old)"
   "--c-scale[Lighten colors by a multiplier]:scale:"
