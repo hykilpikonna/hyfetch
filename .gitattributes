@@ -1,2 +1,17 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+* text=auto eol=lf
+
+*.csv text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.rs text eol=lf
+*.sh text eol=lf
+*.toml text eol=lf
+*.txt text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+Cargo.lock text eol=lf merge=binary
+Makefile text eol=lf
+MANIFEST.in text eol=lf
+neofetch text eol=lf

@@ -1,0 +1,39 @@
+[package]
+name = "hyfetch"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+description = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+default-run = "hyfetch"
+
+[dependencies]
+# ansi_colours = { workspace = true, features = ["rgb"] }
+anyhow = { workspace = true, features = ["std"] }
+bpaf = { workspace = true, features = [] }
+chrono = { workspace = true, features = ["clock", "std"] }
+deranged = { workspace = true, features = ["serde", "std"] }
+# derive_more = { workspace = true, features = ["std"] }
+directories = { workspace = true, features = [] }
+indexmap = { workspace = true, features = ["serde", "std"] }
+regex = { workspace = true, features = ["perf", "std", "unicode"] }
+rgb = { workspace = true, features = [] }
+serde = { workspace = true, features = ["derive", "std"] }
+serde_json = { workspace = true, features = ["std"] }
+serde_path_to_error = { workspace = true, features = [] }
+shell-words = { workspace = true, features = ["std"] }
+strum = { workspace = true, features = ["derive", "std"] }
+tracing = { workspace = true, features = ["attributes", "std"] }
+tracing-subscriber = { workspace = true, features = ["ansi", "fmt", "smallvec", "std", "tracing-log"] }
+
+[build-dependencies]
+indexmap = { workspace = true, features = ["std"] }
+regex = { workspace = true, features = ["perf", "std", "unicode"] }
+unicode-normalization = { workspace = true, features = ["std"] }
+
+[features]
+default = ["autocomplete", "color"]
+autocomplete = ["bpaf/autocomplete"]
+color = ["bpaf/dull-color"]
