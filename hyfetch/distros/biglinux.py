@@ -2,25 +2,30 @@
 
 from . import AsciiArt
 
-biglinux = AsciiArt(match=r'''"BigLinux"*''', color='6 11 4', ascii=r"""
-${c1}                                 ...
-                              :OWMMMNd.
-                            :NMMMMMMMMWc
-                  okkl.    kMMMMMW0xdOWMl
-  :             xMMMMMW.  kMMMMNc      lW.
- :x             NMMMMMO  ,MMMM0.        'l
- Xx              "lkk"   kMMMX      .okx,
-${c2}.MX      .cc;.    .xXKx. KMMM:    .OMMMMMl
-:MM'   'KMMMMWK:  0MMMMk xMMM.   lWMMMMMMM'
-cMMN:;xMMMMk::MMO oMMMMX .XMM. .KMMMWOOMMMd
-'MMMMMMMMN,   NMMx OMMMMl .kM0OMMMMk.  ;MMd
- xMMMMMMd    .MMMW  :NMMMd  .ckKKx'     KMc
-  dWMNd.     oMMMN    lkNMX,            oM.
- ;.         ;MMMMx      "MM:.           cO
-${c3} .X.       oMMMMW.                      l.
-  dMk:..;xWMMMMW,
-   kMMMMMMMMMMX.
-    :XMMMMMMK:
-      ':MM:"      Made in Brazil
+biglinux = AsciiArt(match=r'''"BigLinux"*''', color='2 3 4 7', ascii=r"""
+                                                                    
+${c4}
+                                              ${c3}.cd0KXXX${c4}0${c3}x;           
+                                           ${c3}.oXM${c4}M${c3}MMMMMMMMMWo         
+                             ${c2}...          ${c3}dWMMMM${c4}M${c3}MMMMMMMMMMN,       
+                          ${c2}c0WMMMW0:     ${c3}.XMMMM${c4}M${c3}MMMKdc;,;cxNMM:      
+    ${c1}x,                  ${c2}.XMMMMMMMMM:   ${c3}'W${c3}MMMMMMWo.         ;KW.     
+   ${c1}dM.                  ${c2}.WMMMMMMMM0    ${c3}N${c3}MMMM${c4}M${c3}Mk.             dd     
+  ${c1}.MM.                   ${c2}.lOKXKOl.    ${c3}oMMMMMMd         .l${c4}x${c3}kd: .     
+  ${c1}kMM:          .'..         ${c2}:xOOxc.  ${c3}O${c4}M${c3}MMMM0        lXMMMMM${c4}M${c3}N;     
+  ${c1}WMM0       lKMMMMMW0o.    ${c2}KMMMMMMN. ${c3}xMM${c4}M${c3}M,     .dWMMMMMMMMMM;    
+ ${c1}.MMMMx   .oWMMMMMMOl0MMX;  ${c2}NMMMMMMM; ${c3}.NMMMM.   .dWMMMM${c4}M${c3}MMMMMMMN    
+ ${c1}.MMMMMNOKMMMMMMMk.  'MMMMx ${c2};MMMMMMMO  ${c3}.KMMMl .oWMMMMMWk:,lWMMMM.   
+  ${c1}xMMMMMMMMMMMMk.    .MMMMMc ${c2}'XMMMMMMx   ${c3}:0MMNMMMM${c4}M${c3}MWx.    .WM${c4}M${c3}M.   
+   ${c1}0MMMMMMMMWx.      :MMMMMK   ${c2}cKMMMMMX:    ${c3},ok0K0x:.       oMMN    
+    ${c1}oNMMMM0c.       .NMMMMMO     ${c2}.lOWMMMX:                  ${c3}.M${c4}M${c3}o    
+   ${c1}c. .'.          .KMMMMMM:         ${c2}.';clc.                 ${c3}MN     
+   ${c1}:N;            cWMMMMMMO                                 ${c3}.W;     
+    ${c1}0M0:       'dNMMMMMMM0                                  ${c3}',      
+     ${c1}0MMMX0O0XMMMMMMMMMMo                                           
+      ${c1}oWMMMMMMMMMMMMMMk.                                            
+       ${c1}.oXMMMMMMMMW0c.                                              
+          ${c1}.;ccc:,.                                     
+                             
 """)
     
