@@ -690,6 +690,58 @@ PRESETS: dict[str, ColorProfile] = {
         '#636363',
     ]),
 
+    # Queer Subcultures
+    # sourced from https://commons.wikimedia.org/wiki/File:Bear_Brotherhood_flag.svg
+    'bear': ColorProfile([
+        '#623804',
+	'#D56300',
+	'#FEDD63',
+	'#FEE6B8',
+	'#FFFFFF',
+	'#555555',
+    ]),
+
+    # colorpicked from https://commons.wikimedia.org/wiki/File:Butch_Flag.png
+    'butch': ColorProfile([
+	'#D72800',
+	'#F17623',
+	'#FF9C56',
+	'#FFFDF6',
+	'#FFCE89',
+	'#FEAF02',
+	'#A37000',
+    ]),
+	
+    # colorpicked from https://commons.wikimedia.org/wiki/File:Leather,_Latex,_and_BDSM_pride_-_Light.svg
+    'leather': ColorProfile([
+	'#000000',
+	'#252580',
+	'#000000',
+	'#252580',
+	'#FFFFFF',
+	'#252580',
+	'#000000',
+	'#252580',
+	'#000000',
+    ]),
+
+    # colorpicked from https://commons.wikimedia.org/wiki/File:Official_Otter_Pride_Flag_by_Bearbackgear.jpg
+    'otter': ColorProfile([
+	'#263881',
+	'#5C9DC9',
+	'#FFFFFF',
+	'#3A291D',
+	'#5C9DC9',
+	'#263881',
+    ]),
+
+    # colorpicked from https://commons.wikimedia.org/wiki/File:Twink_Pride_Flag_(proposed).svg
+    'twink': ColorProfile([
+	'#FFB2FF',
+	'#FFFFFF',
+	'#FFFF81',
+    ]),
+	    
     # Meme flags
     'beiyang': ColorProfile([
         '#DF1B12',
@@ -718,5 +770,5 @@ PRESETS: dict[str, ColorProfile] = {
         '#1B86BC',
         '#243897',
         '#6F0A82',
-    ])
+    ]),
 }
