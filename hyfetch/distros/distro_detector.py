@@ -884,6 +884,10 @@ def detect(name: str) -> AsciiArt | None:
         from .nixos_old import nixos_old
         return nixos_old
     
+    if name.startswith('nixos_colorful'):
+        from .nixos_colorful import nixos_colorful
+        return nixos_colorful
+    
     if name.startswith('nixos'):
         from .nixos import nixos
         return nixos
