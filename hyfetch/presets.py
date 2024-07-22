@@ -718,5 +718,15 @@ PRESETS: dict[str, ColorProfile] = {
         '#1B86BC',
         '#243897',
         '#6F0A82',
+    ]),
+    # this is 4 all the dogs, from zombpawcoins on tumblr!
+    'caninekin': ColorProfile([
+        '#2d2822',
+        '#543d25',
+        '#9c754d',
+        '#e8dac2',
+        '#cfad8c',
+        '#b77b55',
+        '#954e31'
     ])
 }
