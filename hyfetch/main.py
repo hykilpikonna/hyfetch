@@ -247,7 +247,7 @@ def create_config() -> Config:
 
         # Random color schemes
         pis = list(range(len(_prs.unique_colors().colors)))
-        slots = list(set(re.findall('(?<=\\${c)[0-9](?=})', asc)))
+        slots = list(set(map(int, re.findall('(?<=\\${c)[0-9](?=})', asc))))
         while len(pis) < len(slots):
             pis += pis
         perm = {p[:len(slots)] for p in permutations(pis)}

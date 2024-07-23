@@ -129,7 +129,10 @@ class ColorAlignment:
 
     @classmethod
     def from_dict(cls, d: dict):
-        return from_dict(cls, d)
+        ca = from_dict(cls, d)
+        # Fixup: Keys must json serialize as str, so we convert them back to int.
+        ca.custom_colors = {int(k): v for k, v in ca.custom_colors.items()}
+        return ca
 
     def recolor_ascii(self, asc: str, preset: ColorProfile) -> str:
         """
