@@ -689,6 +689,37 @@ PRESETS: dict[str, ColorProfile] = {
         '#FFFFFF',
         '#636363',
     ]),
+	
+    'kenochoric': ColorProfile([
+        '#000000',
+        '#2E1569',
+        '#824DB7',
+        '#C7A1D6',
+    ]),
+
+    'veldian': ColorProfile([
+        '#D182A8',
+        '#FAF6E0',
+        '#69ACBE',
+        '#5D448F',
+        '#3A113E',
+    ]),
+	
+    'solian': ColorProfile([
+        '#FFF8ED',
+        '#FFE7A8',
+        '#F1B870',
+        '#A56058',
+        '#46281E',
+    ]),
+	
+    'lunian': ColorProfile([
+        '#2F0E62',
+        '#6F41B1',
+        '#889FDF',
+        '#7DDFD5',
+        '#D2F2E2',
+    ]),
 
     # Meme flags
     'beiyang': ColorProfile([
