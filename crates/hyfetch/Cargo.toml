@@ -1,0 +1,59 @@
+[package]
+name = "hyfetch"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+description = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+default-run = "hyfetch"
+
+[dependencies]
+aho-corasick = { workspace = true, features = ["perf-literal", "std"] }
+ansi_colours = { workspace = true, features = [] }
+anstream = { workspace = true, features = [], optional = true }
+anyhow = { workspace = true, features = ["std"] }
+bpaf = { workspace = true, features = [] }
+crossterm = { workspace = true, features = [] }
+deranged = { workspace = true, features = ["serde", "std"] }
+directories = { workspace = true, features = [] }
+enterpolation = { workspace = true, features = ["bspline", "std"] }
+fastrand = { workspace = true, features = ["std"] }
+indexmap = { workspace = true, features = ["serde", "std"] }
+itertools = { workspace = true, features = ["use_std"] }
+palette = { workspace = true, features = ["std"] }
+serde = { workspace = true, features = ["derive", "std"] }
+serde_json = { workspace = true, features = ["std"] }
+serde_path_to_error = { workspace = true, features = [] }
+shell-words = { workspace = true, features = ["std"] }
+strum = { workspace = true, features = ["derive", "std"] }
+supports-color = { workspace = true, features = [] }
+tempfile = { workspace = true, features = [] }
+terminal-colorsaurus = { workspace = true, features = [] }
+terminal_size = { workspace = true, features = [] }
+thiserror = { workspace = true, features = [] }
+time = { workspace = true, features = ["local-offset", "std"] }
+toml_edit = { workspace = true, features = [], optional = true }
+tracing = { workspace = true, features = ["attributes", "std"] }
+tracing-subscriber = { workspace = true, features = ["ansi", "fmt", "smallvec", "std", "tracing-log"] }
+unicode-segmentation = { workspace = true, features = [] }
+
+[build-dependencies]
+indexmap = { workspace = true, features = ["std"] }
+regex = { workspace = true, features = ["perf", "std", "unicode"] }
+unicode-normalization = { workspace = true, features = ["std"] }
+
+[target.'cfg(windows)'.dependencies]
+enable-ansi-support = { workspace = true, features = [] }
+normpath = { workspace = true, features = [] }
+same-file = { workspace = true, features = [] }
+
+[features]
+default = ["autocomplete", "color", "macchina"]
+autocomplete = ["bpaf/autocomplete"]
+color = ["bpaf/dull-color"]
+macchina = ["dep:anstream", "dep:toml_edit", "toml_edit/display"]
+
+[lints]
+workspace = true
