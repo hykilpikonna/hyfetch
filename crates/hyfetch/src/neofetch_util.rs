@@ -506,8 +506,7 @@ where
 
     #[cfg(not(windows))]
     {
-        let mut command = Command::new("bash");
-        command.arg(neofetch_path);
+        let mut command = Command::new(neofetch_path);
         command.args(args);
         Ok(command)
     }
