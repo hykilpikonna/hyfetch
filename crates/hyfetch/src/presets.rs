@@ -119,6 +119,11 @@ pub enum Preset {
 
     Pangender,
 
+    /// High-contrast version of pangender flag
+    #[serde(rename = "pangender.contrast")]
+    #[strum(serialize = "pangender.contrast")]
+    PangenderContrast,
+
     #[serde(rename = "gendernonconforming1")]
     #[strum(serialize = "gendernonconforming1")]
     GenderNonconforming1,
@@ -143,9 +148,22 @@ pub enum Preset {
 
     NonhumanUnity,
 
+    /// For all the dogs
+    Caninekin,
+
     Plural,
 
     Fraysexual,
+
+    Bear,
+
+    Butch,
+
+    Leather,
+
+    Otter,
+
+    Twink,
 
     Kenochoric,
 
@@ -192,6 +210,8 @@ pub enum Preset {
     Burger,
 
     /// Meme flag
+    #[serde(rename = "throatlozenges")]
+    #[strum(serialize = "throatlozenges")]
     ThroatLozenges,
 
     /// Colors from Gilbert Baker's original 1978 flag design
@@ -427,6 +447,11 @@ impl Preset {
                 "#FFF798", "#FEDDCD", "#FFEBFB", "#FFFFFF", "#FFEBFB", "#FEDDCD", "#FFF798",
             ]),
 
+            // high-contrast version of pangender flag
+            Self::PangenderContrast => ColorProfile::from_hex_colors(vec![
+                "#ffe87f", "#fcbaa6", "#fbc9f3", "#FFFFFF", "#fbc9f3", "#fcbaa6", "#ffe87f",
+            ]),
+
             Self::GenderNonconforming1 => ColorProfile::from_hex_colors(vec![
                 "#50284d", "#96467b", "#5c96f7", "#ffe6f7", "#5c96f7", "#96467b", "#50284d",
             ])
@@ -474,6 +499,11 @@ impl Preset {
                 ColorProfile::from_hex_colors(vec!["#177B49", "#FFFFFF", "#593C90"])
             },
 
+            // used https://www.tumblr.com/zombpawcoins/745062851267493888/caninekin-canine-therian-flag
+            Self::Caninekin => ColorProfile::from_hex_colors(vec![
+                "#2d2822", "#543d25", "#9c754d", "#e8dac2", "#cfad8c", "#b77b55", "#954e31",
+            ]),
+
             // used https://pluralpedia.org/w/Plurality#/media/File:Plural-Flag-1.jpg as source and colorpicked
             Self::Plural => ColorProfile::from_hex_colors(vec![
                 "#2D0625", "#543475", "#7675C3", "#89C7B0", "#F3EDBD",
@@ -483,6 +513,30 @@ impl Preset {
             Self::Fraysexual => {
                 ColorProfile::from_hex_colors(vec!["#226CB5", "#94E7DD", "#FFFFFF", "#636363"])
             },
+
+            // sourced from https://commons.wikimedia.org/wiki/File:Bear_Brotherhood_flag.svg
+            Self::Bear => ColorProfile::from_hex_colors(vec![
+                "#623804", "#D56300", "#FEDD63", "#FEE6B8", "#FFFFFF", "#555555",
+            ]),
+
+            // colorpicked from https://commons.wikimedia.org/wiki/File:Butch_Flag.png
+            Self::Butch => ColorProfile::from_hex_colors(vec![
+                "#D72800", "#F17623", "#FF9C56", "#FFFDF6", "#FFCE89", "#FEAF02", "#A37000",
+            ]),
+
+            // colorpicked from https://commons.wikimedia.org/wiki/File:Leather,_Latex,_and_BDSM_pride_-_Light.svg
+            Self::Leather => ColorProfile::from_hex_colors(vec![
+                "#000000", "#252580", "#000000", "#252580", "#FFFFFF", "#252580", "#000000",
+                "#252580", "#000000",
+            ]),
+
+            // colorpicked from https://commons.wikimedia.org/wiki/File:Official_Otter_Pride_Flag_by_Bearbackgear.jpg
+            Self::Otter => ColorProfile::from_hex_colors(vec![
+                "#263881", "#5C9DC9", "#FFFFFF", "#3A291D", "#5C9DC9", "#263881",
+            ]),
+
+            // colorpicked from https://commons.wikimedia.org/wiki/File:Twink_Pride_Flag_(proposed).svg
+            Self::Twink => ColorProfile::from_hex_colors(vec!["#FFB2FF", "#FFFFFF", "#FFFF81"]),
 
             Self::Kenochoric => {
                 ColorProfile::from_hex_colors(vec!["#000000", "#2E1569", "#824DB7", "#C7A1D6"])
@@ -570,7 +624,7 @@ impl Preset {
             ]),
 
             Self::ThroatLozenges => ColorProfile::from_hex_colors(vec![
-                "#2759DA", "#03940D", "#F5F100", "#F59B00", "#B71212"
+                "#2759DA", "#03940D", "#F5F100", "#F59B00", "#B71212",
             ]),
 
             // used https://gilbertbaker.com/rainbow-flag-color-meanings/ as source and colorpicked

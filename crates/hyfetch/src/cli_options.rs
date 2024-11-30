@@ -1,3 +1,4 @@
+use std::iter;
 use std::path::PathBuf;
 use std::str::FromStr as _;
 
@@ -6,7 +7,8 @@ use anyhow::Context as _;
 use bpaf::ShellComp;
 use bpaf::{construct, long, OptionParser, Parser as _};
 use directories::BaseDirs;
-use strum::VariantNames as _;
+use itertools::Itertools as _;
+use strum::{VariantArray, VariantNames};
 
 use crate::color_util::{color, Lightness};
 use crate::presets::Preset;
@@ -53,19 +55,36 @@ pub fn options() -> OptionParser<Options> {
         .help(&*format!(
             "Use preset
 PRESET={{{presets}}}",
-            presets = Preset::VARIANTS.join(",")
+            presets = <Preset as VariantNames>::VARIANTS
+                .iter()
+                .chain(iter::once(&"random"))
+                .join(",")
         ))
         .argument::<String>("PRESET");
     #[cfg(feature = "autocomplete")]
     let preset = preset.complete(complete_preset);
     let preset = preset
         .parse(|s| {
-            Preset::from_str(&s).with_context(|| {
-                format!(
-                    "PRESET should be one of {{{presets}}}",
-                    presets = Preset::VARIANTS.join(",")
-                )
-            })
+            Preset::from_str(&s)
+                .or_else(|e| {
+                    if s == "random" {
+                        let mut rng = fastrand::Rng::new();
+                        Ok(*rng
+                            .choice(<Preset as VariantArray>::VARIANTS)
+                            .expect("preset iterator should not be empty"))
+                    } else {
+                        Err(e)
+                    }
+                })
+                .with_context(|| {
+                    format!(
+                        "PRESET should be one of {{{presets}}}",
+                        presets = <Preset as VariantNames>::VARIANTS
+                            .iter()
+                            .chain(iter::once(&"random"))
+                            .join(",")
+                    )
+                })
         })
         .optional();
     let mode = long("mode")
@@ -177,8 +196,9 @@ BACKEND={{{backends}}}",
 
 #[cfg(feature = "autocomplete")]
 fn complete_preset(input: &String) -> Vec<(String, Option<String>)> {
-    Preset::VARIANTS
+    <Preset as VariantNames>::VARIANTS
         .iter()
+        .chain(iter::once(&"random"))
         .filter_map(|&name| {
             if name.starts_with(input) {
                 Some((name.to_owned(), None))

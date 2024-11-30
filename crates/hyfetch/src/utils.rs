@@ -167,7 +167,7 @@ pub(crate) mod index_map_serde {
             }
         }
 
-        impl<'de, K> Visitor<'de> for KeySeed<K>
+        impl<K> Visitor<'_> for KeySeed<K>
         where
             K: FromStr,
             K::Err: fmt::Display,
