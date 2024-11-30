@@ -2199,7 +2199,7 @@ get_packages() {
             if has dnf && type -p sqlite3 >/dev/null && [[ -f /var/cache/dnf/packages.db ]]; then
                 pac "$(sqlite3 /var/cache/dnf/packages.db "SELECT count(pkg) FROM installed")"
             else
-                has rpm && tot rpm -qa
+                has rpm && tot rpm -qa --nodigest --nosignature
             fi
 
             # 'mine' conflicts with minesweeper games.
@@ -2360,7 +2360,7 @@ get_packages() {
 
         AIX|FreeMiNT)
             has lslpp && ((packages+=$(lslpp -J -l -q | grep -cv '^#')))
-            has rpm   && tot rpm -qa
+            has rpm   && tot rpm -qa --nodigest --nosignature
         ;;
 
         Windows)
