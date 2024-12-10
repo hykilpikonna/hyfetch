@@ -595,7 +595,7 @@ where
 }
 
 #[tracing::instrument(level = "debug")]
-fn get_distro_name(backend: Backend) -> Result<String> {
+pub(crate) fn get_distro_name(backend: Backend) -> Result<String> {
     match backend {
         Backend::Neofetch => run_neofetch_command_piped(&["ascii_distro_name"])
             .context("failed to get distro name from neofetch"),

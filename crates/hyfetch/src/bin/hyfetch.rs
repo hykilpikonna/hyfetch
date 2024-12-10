@@ -29,6 +29,7 @@ use hyfetch::presets::{AssignLightness, Preset};
 use hyfetch::pride_month;
 use hyfetch::types::{AnsiMode, Backend, TerminalTheme};
 use hyfetch::utils::{get_cache_path, input};
+use hyfetch::font_logo::get_font_logo;
 use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools as _;
 use palette::{LinSrgb, Srgb};
@@ -76,6 +77,12 @@ fn main() -> Result<()> {
         let asc = get_distro_ascii(distro, backend).context("failed to get distro ascii")?;
         writeln!(io::stdout(), "{asc}", asc = asc.asc)
             .context("failed to write ascii to stdout")?;
+        return Ok(());
+    }
+
+    if options.print_font_logo {
+        let logo = get_font_logo(backend).context("failed to get font logo")?;
+        writeln!(io::stdout(), "{}", logo).context("failed to write logo to stdout")?;
         return Ok(());
     }
 
