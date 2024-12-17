@@ -572,15 +572,14 @@ fn create_config(
         print_flag_page(&pages[usize::from(page)], page).context("failed to print flag page")?;
 
         let mut opts: Vec<&str> = <Preset as VariantNames>::VARIANTS.into();
-        if page < num_pages.checked_sub(1).unwrap() {
-            opts.push("next");
-        }
-        if page > 0 {
-            opts.push("prev");
-        }
+        opts.push("next");
+        opts.push("n");
+        opts.push("prev");
+        opts.push("p");
+
         writeln!(
             io::stdout(),
-            "Enter 'next' to go to the next page and 'prev' to go to the previous page."
+            "Enter '[n]ext' to go to the next page and '[p]rev' to go to the previous page."
         )
         .context("failed to write message to stdout")?;
         let selection = literal_input(
@@ -595,10 +594,18 @@ fn create_config(
         )
         .context("failed to ask for choice input")
         .context("failed to select preset")?;
-        if selection == "next" {
-            page = page.checked_add(1).unwrap();
-        } else if selection == "prev" {
-            page = page.checked_sub(1).unwrap();
+        if selection == "next" || selection == "n" {
+            if page == num_pages.checked_sub(1).unwrap() {
+                page = 0
+            } else {
+                page = page.checked_add(1).unwrap();
+            }
+        } else if selection == "prev" || selection == "p" {
+            if page == 0 {
+                page = num_pages.checked_sub(1).unwrap();
+            } else {
+                page = page.checked_sub(1).unwrap();
+            }
         } else {
             preset = selection.parse().expect("selected preset should be valid");
             debug!(?preset, "selected preset");
