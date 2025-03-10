@@ -1206,7 +1206,6 @@ get_distro() {
                         tiny) distro=${NAME} ;;
                         *)    distro="${NAME} ${VERSION}" ;;
                     esac
-                    echo OK
                 elif [[ -f /etc/debian_version ]] && [[ $(lsb_release -si) != *"buntu"* ]] && [[ $(lsb_release -si) != *"neon"* ]]; then
                     . /etc/os-release
                     case $distro_shorthand in
