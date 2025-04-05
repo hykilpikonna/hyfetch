@@ -4579,7 +4579,7 @@ get_python_ver() {
     if command -v python &> /dev/null; then
         python_ver=$(python -VVV)
         python_ver=${python_ver//$'\n'/}
-        python_ver=${python_ver//\(+([^\)])\)}
+        python_ver=${python_ver//+([[:space:]])\(+([^\)])\)}
         python_ver=$(echo "$python_ver" | awk '$1=$1')
     fi
 }
