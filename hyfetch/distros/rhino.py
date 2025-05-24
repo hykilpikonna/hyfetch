@@ -1,1 +1,28 @@
 
+from . import AsciiArt
+
+   Rhino Linux = AsciiArt(match=r'''"Rhino Linux"* | "Rhino"*''', color='5 4', ascii=r"""
+
+
+${c1}
+${c1}            ..','..      l.
+        .,coooooooooc,..ool
+      ;oooooooooooooooooooo.,coo.
+    ;oooooooooooooooooooooooooo      ,
+  .ooooooooooooooooooooooooooo   .  ,o
+  oollcccccccccllloooooooooooolcoo..oo
+ ll;':::::::::::::::ccloooooooooooooo:
+.;''';::::::::::::::::::ccloooooooooo
+''''',:::::::::::::::::::::::cclllllc
+'''''';::::::::::::::::::::::::::::::
+${c1}.'''''';::::::::::::::::${c2}ll${c1}:::::::::::
+${c1} ''''''';:::::::::::::::${c2}d0${c1}::
+ ${c1}.''''''',;:::::::${c2}cc${c1}::::${c2}0N:'
+  ${c1}''''''''',,;::::${c2}cK${c1}:::${c2}dMX,
+   ${c1}'''''''''''',,,${c2}dMccOMM${c1}:
+    ${c1}.''''''''''''${c2}cWM0WMM${c1}.
+      ${c1}'''''''':${c2}kMMMMM${c1}.
+         ${c2}odxONMMMM
+            ;Kl
+
+""")
