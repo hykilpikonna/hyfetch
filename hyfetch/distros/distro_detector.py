@@ -1180,6 +1180,10 @@ def detect(name: str) -> AsciiArt | None:
         from .rhaymos import rhaymos
         return rhaymos
     
+    if name.startswith('rhino linux'):
+        from .rhino_linux import rhino_linux
+        return rhino_linux
+    
     if name.startswith('rocky_small'):
         from .rocky_small import rocky_small
         return rocky_small
