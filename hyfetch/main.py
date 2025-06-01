@@ -423,7 +423,7 @@ def run():
         
         if config.mode == 'rgb':
             pride_month.start_animation()
-        elif config.model == '8bit':
+        elif config.mode == '8bit':
             pride_month_8bit.start_animation()
             
         print()
