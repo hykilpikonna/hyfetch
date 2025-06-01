@@ -10,7 +10,7 @@ import traceback
 from itertools import permutations, islice
 from math import ceil
 
-from . import termenv, neofetch_util, pride_month
+from . import termenv, neofetch_util, pride_month, pride_month_8bit
 from .color_scale import Scale
 from .color_util import clear_screen
 from .constants import *
@@ -418,7 +418,14 @@ def run():
         args.june = True
 
     if args.june and not config.pride_month_disable:
-        pride_month.start_animation()
+        if args.mode:
+            config.mode = args.mode
+        
+        if config.mode == 'rgb':
+            pride_month.start_animation()
+        elif config.model == '8bit':
+            pride_month_8bit.start_animation()
+            
         print()
         print("Happy pride month!")
         print("(You can always view the animation again with `hyfetch --june`)")
