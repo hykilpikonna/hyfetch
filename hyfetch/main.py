@@ -414,17 +414,18 @@ def run():
     # Check if it's June (pride month)
     now = datetime.datetime.now()
     june_path = CACHE_PATH / f'animation-displayed-{now.year}'
+    show_for_june = False
     if now.month == 6 and now.year not in config.pride_month_shown and not june_path.is_file() and os.isatty(sys.stdout.fileno()):
-        args.june = True
+        show_for_june = True
 
-    if args.june and not config.pride_month_disable:
+    if (args.june or show_for_june) and not config.pride_month_disable:
         pride_month.start_animation()
         print()
         print("Happy pride month!")
         print("(You can always view the animation again with `hyfetch --june`)")
         print()
 
-        if not june_path.is_file():
+        if not june_path.is_file() and not args.june: # If --june wasn't explicitly specified...
             june_path.parent.mkdir(parents=True, exist_ok=True)
             june_path.touch()
 
