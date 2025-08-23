@@ -483,9 +483,34 @@ where
 
 #[tracing::instrument(level = "debug")]
 pub fn get_distro_name(backend: Backend) -> Result<String> {
+    use std::collections::HashMap;
+    use std::fs;
+
+    fn parse_os_release() -> Option<HashMap<String, String>> {
+        let contents = fs::read_to_string("/etc/os-release").ok()?;
+        let mut map = HashMap::new();
+
+        for line in contents.lines() {
+            if line.trim().is_empty() || line.starts_with('#') {
+                continue;
+            }
+            if let Some((key, value)) = line.split_once('=') {
+                let mut val = value.trim().to_string();
+                if val.starts_with('"') && val.ends_with('"') && val.len() > 1 {
+                    val = val[1..val.len().saturating_sub(1)].to_string();
+                }
+                map.insert(key.to_string(), val);
+            }
+        }
+
+        Some(map)
+    }
+
     match backend {
+        #[cfg(not(target_os = "linux"))]
         Backend::Neofetch => run_neofetch_command_piped(&["ascii_distro_name"])
             .context("failed to get distro name from neofetch"),
+        #[cfg(not(target_os = "linux"))]
         Backend::Fastfetch => Ok(run_fastfetch_command_piped(&[
             "--logo",
             "none",
@@ -493,6 +518,11 @@ pub fn get_distro_name(backend: Backend) -> Result<String> {
             "OS",
             "--disable-linewrap",
         ]).context("failed to get distro name from fastfetch")?.replace("OS: ", "")),
+        #[cfg(target_os = "linux")]
+        Backend::Neofetch | Backend::Fastfetch => parse_os_release()
+            .context("failed to read /etc/os-release")?
+            .get("NAME").context("no NAME in /etc/os-release")
+            .cloned(),
         #[cfg(feature = "macchina")]
         Backend::Macchina => {
             // Write ascii art to temp file
