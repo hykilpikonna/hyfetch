@@ -3,7 +3,7 @@
 from . import AsciiArt
 
 nixos_small = AsciiArt(match=r'''"nixos_small"''', color='4 6', ascii=r"""
-  ${c1}  \\  \\ //
+  ${c1}\\  \\ //
  ==\\__\\/ //
    //   \\//
 ==//     //==
@@ -11,4 +11,4 @@ nixos_small = AsciiArt(match=r'''"nixos_small"''', color='4 6', ascii=r"""
 // /\\  \\==
   // \\  \\
 """)
-    
+
