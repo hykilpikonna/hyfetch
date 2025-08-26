@@ -12126,7 +12126,7 @@ EOF
         "nixos_small")
             set_colors 4 6
             read -rd '' ascii_data <<'EOF'
-  ${c1}\\\\  \\\\ //
+${c1}   \\\\  \\\\ //
  ==\\\\__\\\\/ //
    //   \\\\//
 ==//     //==
