@@ -321,6 +321,18 @@ def create_config() -> Config:
     # Create config
     clear_screen(title)
     c = Config(preset, color_system, light_dark, lightness, color_alignment, backend)
+    # Ask for custom ascii art
+    print()
+    use_custom_ascii = literal_input('Do you want to use a custom ascii art file? (y/n)', ['y', 'n'], 'n')
+    if use_custom_ascii == 'y':
+        while True:
+            ascii_path = input('Enter the path to your ascii art file: ').strip()
+            if ascii_path:
+                resolved_path = str(Path(os.path.expanduser(ascii_path)).resolve())
+                if Path(resolved_path).is_file():
+                    c.custom_ascii = resolved_path
+                    break
+            print('Invalid file path. Please enter a valid path to an ascii art file.')
 
     # Save config
     print()
@@ -463,7 +475,13 @@ def run():
 
     # Run
     try:
-        asc = get_distro_ascii() if not args.ascii_file else Path(args.ascii_file).read_text("utf-8")
+        # Priority: CLI --ascii-file > config.custom_ascii > get_distro_ascii
+        if args.ascii_file:
+            asc = Path(args.ascii_file).read_text("utf-8")
+        elif config.custom_ascii and Path(config.custom_ascii).is_file():
+            asc = Path(config.custom_ascii).read_text("utf-8")
+        else:
+            asc = get_distro_ascii()
         asc = config.color_align.recolor_ascii(asc, preset)
         neofetch_util.run(asc, config.backend, config.args or '')
     except Exception as e:
