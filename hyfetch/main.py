@@ -465,6 +465,7 @@ def run():
     try:
         asc = get_distro_ascii() if not args.ascii_file else Path(args.ascii_file).read_text("utf-8")
         asc = config.color_align.recolor_ascii(asc, preset)
+        asc = '\n'.join(asc.split('\n')[1:])
         neofetch_util.run(asc, config.backend, config.args or '')
     except Exception as e:
         print(f'Error: {e}')
