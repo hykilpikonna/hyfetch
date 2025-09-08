@@ -149,7 +149,14 @@ fn main() -> Result<()> {
     };
     debug!(?color_profile, "lightened color profile");
 
-    let asc = if let Some(path) = options.ascii_file {
+    let asc = if let Some(path_str) = config.custom_ascii_path {
+        let path = PathBuf::from(path_str);
+        RawAsciiArt {
+            asc: fs::read_to_string(&path)
+                .with_context(|| format!("failed to read ascii from {path:?}"))?,
+            fg: Vec::new(),
+        }
+    } else if let Some(path) = options.ascii_file {
         RawAsciiArt {
             asc: fs::read_to_string(&path)
                 .with_context(|| format!("failed to read ascii from {path:?}"))?,
@@ -1078,6 +1085,73 @@ fn create_config(
         backend.as_ref(),
     );
 
+    //////////////////////////////
+    // 8. Custom ASCII file
+    let mut custom_ascii_path: Option<String> = None;
+    clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
+    let choice = literal_input(
+        "Do you want to specify a custom ASCII file?",
+        &["y", "n"],
+        "n",
+        true,
+        color_mode,
+    )
+    .context("failed to ask for choice input")?;
+
+    if choice == "y" {
+        loop {
+            let path_input = input(Some("Path to custom ASCII file (must be .txt and UTF-8 encoded): "))
+                .context("failed to read input")?
+                .trim()
+                .to_owned();
+
+            if path_input.is_empty() {
+                printc("&cNo path entered. Skipping custom ASCII file.", color_mode).context("failed to print message")?;
+                break;
+            }
+
+            let custom_path = PathBuf::from(&path_input);
+            if !custom_path.is_file() {
+                printc(format!("&cError: File not found at {path_input}"), color_mode).context("failed to print message")?;
+                let try_again = literal_input("Try again?", &["y", "n"], "y", true, color_mode).context("failed to ask for choice input")?;
+                if try_again == "n" {
+                    break;
+                }
+                continue;
+            }
+
+            if custom_path.extension().map_or(true, |ext| ext != "txt") {
+                printc(format!("&cError: File must have a .txt extension. Found {:?}", custom_path.extension()), color_mode).context("failed to print message")?;
+                let try_again = literal_input("Try again?", &["y", "n"], "y", true, color_mode).context("failed to ask for choice input")?;
+                if try_again == "n" {
+                    break;
+                }
+                continue;
+            }
+
+            match fs::read_to_string(&custom_path) {
+                Ok(_) => {
+                    custom_ascii_path = Some(path_input);
+                    update_title(
+                        &mut title,
+                        &mut option_counter,
+                        "Custom ASCII file",
+                        custom_ascii_path.as_ref().unwrap(),
+                    );
+                    break;
+                }
+                Err(e) => {
+                    printc(format!("&cError: File is not UTF-8 encoded or an unexpected error occurred: {e}"), color_mode).context("failed to print message")?;
+                    let try_again = literal_input("Try again?", &["y", "n"], "y", true, color_mode).context("failed to ask for choice input")?;
+                    if try_again == "n" {
+                        break;
+                    }
+                    continue;
+                }
+            }
+        }
+    }
+
     // Create config
     clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
     let config = Config {
@@ -1091,6 +1165,7 @@ fn create_config(
         args: None,
         distro: logo_chosen,
         pride_month_disable: false,
+        custom_ascii_path,
     };
     debug!(?config, "created config");
 

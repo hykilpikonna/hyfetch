@@ -19,6 +19,7 @@ pub struct Config {
     pub args: Option<Vec<String>>,
     pub distro: Option<String>,
     pub pride_month_disable: bool,
+    pub custom_ascii_path: Option<String>,
 }
 
 impl Config {
