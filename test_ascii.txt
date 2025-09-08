@@ -1,0 +1,2 @@
+Hello from test_ascii.txt!
+This is a custom ASCII art.
