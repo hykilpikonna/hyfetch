@@ -1067,4 +1067,29 @@ PRESETS: dict[str, ColorProfile] = {
         "#A3A3A3",
         "#000000"
     ]),
+
+    # Adding Fluidflux flags - ObsoleteDev
+    # Sourced from https://gender.fandom.com/wiki/Fluidflux?file=FC90B24D-CA36-4FE2-A752-C9ABFC65E332.jpeg
+
+    'fluidflux A': ColorProfile([
+        "#ff115f",
+        "#a34aa3",
+        "#00a4e7",
+        "#ffdf00",
+        "#000000",
+        "#ffed71",
+        "#85daff",
+        "#dbadda",
+        "#fe8db1"
+    ]),
+
+    'fluidflux B': ColorProfile([
+        "#c6d1d2",
+        "#f47b9d",
+        "#f09f9b",
+        "#e3f09e",
+        "#75eeea",
+        "#52d2ed",
+        "#c6d1d2"
+    ]),
 }
