@@ -17,7 +17,7 @@ from .constants import *
 from .font_logo import get_font_logo
 from .models import Config
 from .neofetch_util import *
-from .presets import PRESETS
+from .presets import PRESETS, ColorProfile
 
 
 def check_config(path) -> Config:
@@ -338,7 +338,7 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument('-c', '--config', action='store_true', help=color(f'Configure hyfetch'))
     parser.add_argument('-C', '--config-file', dest='config_file', default=CONFIG_PATH, help=f'Use another config file')
-    parser.add_argument('-p', '--preset', help=f'Use preset', choices=list(PRESETS.keys()) + ['random'])
+    parser.add_argument('-p', '--preset', help=f'Use preset or comma-separated hex color list (e.g., "#ff0000,#00ff00,#0000ff")')
     parser.add_argument('-m', '--mode', help=f'Color mode', choices=['8bit', 'rgb'])
     parser.add_argument('-b', '--backend', help=f'Choose a *fetch backend', choices=['qwqfetch', 'neofetch', 'fastfetch', 'fastfetch-old'])
     parser.add_argument('--args', help=f'Additional arguments pass-through to backend')
@@ -451,7 +451,21 @@ def run():
     GLOBAL_CFG.is_light = config.light_dark == 'light'
 
     # Get preset
-    preset = PRESETS.get(config.preset)
+    preset = None
+    if config.preset in PRESETS:
+        preset = PRESETS.get(config.preset)
+    elif '#' in config.preset:
+        colors = [color.strip() for color in config.preset.split(',')]
+
+        for color in colors:
+            if not (color.startswith('#') and len(color) in [4, 7] and all(c in '0123456789abcdefABCDEF' for c in color[1:])):
+                print(f'Error: invalid hex color "{color}"')
+        preset = ColorProfile(colors)
+    else:
+        print(f'Preset should be a comma-separated list of hex colors, or one of the following: {', '.join(sorted(PRESETS.keys()))}')
+
+    if preset is None:
+        exit(1)
 
     # Lighten (args > config)
     if args.scale:

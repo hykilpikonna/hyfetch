@@ -3,6 +3,7 @@ use std::cmp;
 use std::fmt::Write as _;
 use std::fs::{self, File};
 use std::io::{self, IsTerminal as _, Read as _, Write as _};
+use std::iter;
 use std::iter::zip;
 use std::num::NonZeroU8;
 use std::path::{Path, PathBuf};
@@ -24,7 +25,7 @@ use hyfetch::models::Config;
 #[cfg(feature = "macchina")]
 use hyfetch::neofetch_util::macchina_path;
 use hyfetch::neofetch_util::{self, add_pkg_path, fastfetch_path, get_distro_ascii, get_distro_name, literal_input, ColorAlignment, NEOFETCH_COLORS_AC, NEOFETCH_COLOR_PATTERNS, TEST_ASCII};
-use hyfetch::presets::{AssignLightness, Preset};
+use hyfetch::presets::{AssignLightness, ColorProfile, Preset};
 use hyfetch::pride_month;
 use hyfetch::types::{AnsiMode, Backend, TerminalTheme};
 use hyfetch::utils::{get_cache_path, input};
@@ -129,9 +130,43 @@ fn main() -> Result<()> {
     let backend = options.backend.unwrap_or(config.backend);
     let args = options.args.as_ref().or(config.args.as_ref());
 
+    fn parse_preset_string(preset_string: &str) -> Result<ColorProfile> {
+        if preset_string.contains('#') {
+            let colors: Vec<&str> = preset_string.split(',').map(|s| s.trim()).collect();
+            for color in &colors {
+                if !color.starts_with('#') ||
+                    (color.len() != 4 && color.len() != 7) ||
+                    !color[1..].chars().all(|c| c.is_ascii_hexdigit()) {
+                    return Err(anyhow::anyhow!("invalid hex color: {}", color));
+                }
+            }
+            ColorProfile::from_hex_colors(colors)
+                .context("failed to create color profile from hex")
+        } else if preset_string == "random" {
+            let mut rng = fastrand::Rng::new();
+            let preset = *rng
+                .choice(<Preset as VariantArray>::VARIANTS)
+                .expect("preset iterator should not be empty");
+            Ok(preset.color_profile())
+        } else {
+            use std::str::FromStr;
+            let preset = Preset::from_str(preset_string)
+                .with_context(|| {
+                    format!(
+                        "PRESET should be comma-separated hex colors or one of {{{presets}}}",
+                        presets = <Preset as VariantNames>::VARIANTS
+                            .iter()
+                            .chain(iter::once(&"random"))
+                            .join(",")
+                    )
+                })?;
+            Ok(preset.color_profile())
+        }
+    }
+
     // Get preset
-    let preset = options.preset.unwrap_or(config.preset);
-    let color_profile = preset.color_profile();
+    let preset_string = options.preset.as_deref().unwrap_or(&config.preset);
+    let color_profile = parse_preset_string(preset_string)?;
     debug!(?color_profile, "color profile");
 
     // Lighten
@@ -1081,7 +1116,7 @@ fn create_config(
     // Create config
     clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
     let config = Config {
-        preset,
+        preset: preset.as_ref().to_string(),
         mode: color_mode,
         light_dark: Some(theme),
         auto_detect_light_dark: Some(det_bg.is_some()),

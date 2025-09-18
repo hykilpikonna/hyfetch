@@ -2,12 +2,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::color_util::Lightness;
 use crate::neofetch_util::ColorAlignment;
-use crate::presets::Preset;
 use crate::types::{AnsiMode, Backend, TerminalTheme};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
-    pub preset: Preset,
+    pub preset: String,
     pub mode: AnsiMode,
     pub auto_detect_light_dark: Option<bool>,
     pub light_dark: Option<TerminalTheme>,
