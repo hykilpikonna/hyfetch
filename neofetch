@@ -1823,6 +1823,10 @@ get_model() {
                 iPod5,1): "iPod touch 5G" ;;
                 iPod7,1): "iPod touch 6G" ;;
                 iPod9,1): "iPod touch 7G" ;;
+
+                AppleTV2,1): "Apple TV 2" ;;
+                AppleTV3,1): "Apple TV 3" ;;
+                AppleTV3,2): "Apple TV 3 (2013)" ;;
             esac
 
             model=$_
@@ -3232,6 +3236,10 @@ END
                 "iPad7,"[1-4]): "Apple A10X Fusion (6) @ 2.39GHz" ;;
                 "iPad8,"[1-8]): "Apple A12X Bionic (8) @ 2.49GHz" ;;
                 "iPad8,9" | "iPad8,1"[0-2]): "Apple A12Z Bionic (8) @ 2.49GHz" ;;
+
+                "AppleTV2,1"): "Apple A4 (1) @ 1GHz" ;;
+                "AppleTV3,1"): "Apple A5 (1) @ 1GHz" ;;
+                "AppleTV3,2"): "Apple A5 (1) @ 1GHz" ;;
             esac
             cpu="$_"
         ;;
@@ -3537,10 +3545,12 @@ get_gpu() {
         "iPhone OS")
             case $kernel_machine in
                 "iPhone1,"[1-2]):                             "PowerVR MBX Lite 3D" ;;
-                "iPhone2,1" | "iPhone3,"[1-3] | "iPod3,1" | "iPod4,1" | "iPad1,"[1-2]):
+                "iPhone2,1" | "iPhone3,"[1-3] | "iPod3,1" | "iPod4,1" | "iPad1,"[1-2] | "AppleTV2,1"):
                     "PowerVR SGX535"
                 ;;
-                "iPhone4,1" | "iPad2,"[1-7] | "iPod5,1"):     "PowerVR SGX543MP2" ;;
+                "iPhone4,1" | "iPad2,"[1-7] | "iPod5,1" | "AppleTV3,"[1-2]):
+                    "PowerVR SGX543MP2"
+                ;;
                 "iPhone5,"[1-4]):                             "PowerVR SGX543MP3" ;;
                 "iPhone6,"[1-2] | "iPad4,"[1-9]):             "PowerVR G6430" ;;
                 "iPhone7,"[1-2] | "iPod7,1" | "iPad5,"[1-2]): "PowerVR GX6450" ;;
@@ -4167,6 +4177,7 @@ get_resolution() {
                 "iPad13,"[1-2] | "iPad13,1"[6-9]):                                                                                   "1640x2360" ;;
                 "iPad8,"[1-4] | "iPad8,"[9-10] | "iPad13,"[4-7] | "iPad14,"[3-6]):                                                   "1668x2388" ;;
                 "iPad6,"[7-8] | "iPad7,"[1-2] | "iPad8,"[5-8] | "iPad8,1"[1-2] | "iPad13,"[8-9] | "iPad13,1"[0-1] | "iPad14,"[5-6]): "2048x2732" ;;
+                "AppleTV"*) return ;;
             esac
             resolution="$_"
         ;;
