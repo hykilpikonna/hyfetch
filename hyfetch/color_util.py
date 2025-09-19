@@ -135,9 +135,17 @@ class RGB:
         :return: RGB object
         """
         hex = hex.lstrip("#")
-        r = int(hex[0:2], 16)
-        g = int(hex[2:4], 16)
-        b = int(hex[4:6], 16)
+
+        if len(hex) == 6:
+            r = int(hex[0:2], 16)
+            g = int(hex[2:4], 16)
+            b = int(hex[4:6], 16)
+        elif len(hex) == 3:
+            r = int(hex[0], 16)
+            g = int(hex[1], 16)
+            b = int(hex[2], 16)
+        else:
+            raise ValueError(f"Error: invalid hex length")
         return cls(r, g, b)
 
     def to_ansi_rgb(self, foreground: bool = True) -> str:
