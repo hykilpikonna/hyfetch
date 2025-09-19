@@ -5,6 +5,7 @@ import argparse
 import datetime
 import importlib.util
 import json
+import os
 import random
 import traceback
 from itertools import permutations, islice
@@ -318,9 +319,49 @@ def create_config() -> Config:
     backend = select_backend()
     update_title('Selected backend', backend)
 
+    ##############################
+    # 7. Custom ASCII file
+    custom_ascii_path = None
+    clear_screen(title)
+    if literal_input('Do you want to specify a custom ASCII file?', ['y', 'n'], 'n') == 'y':
+        while True:
+            path_input = input('Path to custom ASCII file (must be .txt and UTF-8 encoded): ').strip()
+            if not path_input:
+                printc('&cNo path entered. Skipping custom ASCII file.')
+                break
+
+            custom_path = Path(path_input)
+            if not custom_path.is_file():
+                printc(f'&cError: File not found at {path_input}')
+                if literal_input('Try again?', ['y', 'n'], 'y') == 'n':
+                    break
+                continue
+
+            if not custom_path.suffix == '.txt':
+                printc(f'&cError: File must have a .txt extension. Found {custom_path.suffix}')
+                if literal_input('Try again?', ['y', 'n'], 'y') == 'n':
+                    break
+                continue
+
+            try:
+                custom_path.read_text('utf-8')
+                custom_ascii_path = str(custom_path)
+                update_title('Custom ASCII file', custom_ascii_path)
+                break
+            except UnicodeDecodeError:
+                printc(f'&cError: File is not UTF-8 encoded.')
+                if literal_input('Try again?', ['y', 'n'], 'y') == 'n':
+                    break
+                continue
+            except Exception as e:
+                printc(f'&cAn unexpected error occurred: {e}')
+                if literal_input('Try again?', ['y', 'n'], 'y') == 'n':
+                    break
+                continue
+
     # Create config
     clear_screen(title)
-    c = Config(preset, color_system, light_dark, lightness, color_alignment, backend)
+    c = Config(preset, color_system, light_dark, lightness, color_alignment, backend, custom_ascii_path=custom_ascii_path)
 
     # Save config
     print()
@@ -463,7 +504,12 @@ def run():
 
     # Run
     try:
-        asc = get_distro_ascii() if not args.ascii_file else Path(args.ascii_file).read_text("utf-8")
+        if config.custom_ascii_path:
+            asc = Path(config.custom_ascii_path).read_text("utf-8")
+        elif args.ascii_file:
+            asc = Path(args.ascii_file).read_text("utf-8")
+        else:
+            asc = get_distro_ascii()
         asc = config.color_align.recolor_ascii(asc, preset)
         asc = '\n'.join(asc.split('\n')[1:])
         neofetch_util.run(asc, config.backend, config.args or '')
