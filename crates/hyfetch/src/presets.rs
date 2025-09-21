@@ -229,6 +229,10 @@ pub enum Preset {
 
     /// Meme flag
     Band,
+
+    Libragender, Librafeminine, Libramasculine, Libraandrogyne, Libranonbinary,
+
+    Fluidfluxa, Fluidfluxb,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -687,6 +691,33 @@ impl Preset {
                 "#2670C0", "#F5BD00", "#DC0045", "#E0608E"
             ]),
 
+            Self::Libragender => ColorProfile::from_hex_colors(vec![
+                "#000000", "#808080", "#92D8E9", "#FFF544", "#FFB0CA", "#808080", "#000000"
+            ]),
+
+            Self::Librafeminine => ColorProfile::from_hex_colors(vec![
+                "#000000", "#A3A3A3", "#FFFFFF", "#C6568F", "#FFFFFF", "#A3A3A3", "#000000"
+            ]),
+
+            Self::Libramasculine => ColorProfile::from_hex_colors(vec![
+                "#000000", "#A3A3A3", "#FFFFFF", "#56C5C5", "#FFFFFF", "#A3A3A3", "#000000"
+            ]),
+
+            Self::Libraandrogyne => ColorProfile::from_hex_colors(vec![
+                "#000000", "#A3A3A3", "#FFFFFF", "#9186B1", "#FFFFFF", "#A3A3A3", "#000000"
+            ]),
+
+            Self::Libranonbinary => ColorProfile::from_hex_colors(vec![
+                "#000000", "#A3A3A3", "#FFFFFF", "#FFF987", "#FFFFFF", "#A3A3A3", "#000000"
+            ]),
+
+            Self::Fluidfluxa => ColorProfile::from_hex_colors(vec![
+                "#ff115f", "#a34aa3", "#00a4e7", "#ffdf00", "#000000", "#ffed71", "#85daff", "#dbadda", "#fe8db1"
+            ]),
+
+            Self::Fluidfluxb => ColorProfile::from_hex_colors(vec![
+                "#c6d1d2", "#f47b9d", "#f09f9b", "#e3f09e", "#75eeea", "#52d2ed", "#c6d1d2"
+            ]),
         })
         .expect("preset color profiles should be valid")
     }

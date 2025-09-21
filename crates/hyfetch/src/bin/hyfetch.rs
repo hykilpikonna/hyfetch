@@ -117,7 +117,7 @@ fn main() -> Result<()> {
         )
         .context("failed to write message to stdout")?;
 
-        if !june_path.is_file() {
+        if !june_path.is_file() && !options.june {
             File::create(&june_path)
                 .with_context(|| format!("failed to create file {june_path:?}"))?;
         }

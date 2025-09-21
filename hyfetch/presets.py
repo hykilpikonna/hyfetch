@@ -1011,4 +1011,85 @@ PRESETS: dict[str, ColorProfile] = {
         "#dc0045",
         "#e0608e"
     ]),
+    
+    # Adding libragender flags https://lgbtqia.wiki/wiki/Libragender
+    # Sourced from https://lgbtqia.wiki/wiki/Libragender
+    'libragender': ColorProfile([
+        "#000000",
+        "#808080",
+        "#92D8E9",
+        "#FFF544",
+        "#FFB0CA",
+        "#808080",
+        "#000000"
+    ]),
+    
+    # Sourced from https://lgbtqia.wiki/wiki/Librafeminine
+    'librafeminine': ColorProfile([
+        "#000000",
+        "#A3A3A3",
+        "#FFFFFF",
+        "#C6568F",
+        "#FFFFFF",
+        "#A3A3A3",
+        "#000000"
+    ]),
+    
+    # Sourced from https://lgbtqia.wiki/wiki/Libramasculine
+    'libramasculine': ColorProfile([
+        "#000000",
+        "#A3A3A3",
+        "#FFFFFF",
+        "#56C5C5",
+        "#FFFFFF",
+        "#A3A3A3",
+        "#000000"
+    ]),
+    
+    # Sourced from https://lgbtqia.wiki/wiki/Librandrogyne
+    'libraandrogyne': ColorProfile([
+        "#000000",
+        "#A3A3A3",
+        "#FFFFFF",
+        "#9186B1",
+        "#FFFFFF",
+        "#A3A3A3",
+        "#000000"
+    ]),
+    
+    # Sourced from https://lgbtqia.wiki/wiki/Libranonbinary
+    'libranonbinary': ColorProfile([
+        "#000000",
+        "#A3A3A3",
+        "#FFFFFF",
+        "#FFF987",
+        "#FFFFFF",
+        "#A3A3A3",
+        "#000000"
+    ]),
+
+    # Adding Fluidflux flags - ObsoleteDev
+    # Sourced from https://gender.fandom.com/wiki/Fluidflux?file=FC90B24D-CA36-4FE2-A752-C9ABFC65E332.jpeg
+
+    'fluidflux A': ColorProfile([
+        "#ff115f",
+        "#a34aa3",
+        "#00a4e7",
+        "#ffdf00",
+        "#000000",
+        "#ffed71",
+        "#85daff",
+        "#dbadda",
+        "#fe8db1"
+    ]),
+
+    'fluidflux B': ColorProfile([
+        "#c6d1d2",
+        "#f47b9d",
+        "#f09f9b",
+        "#e3f09e",
+        "#75eeea",
+        "#52d2ed",
+        "#c6d1d2"
+    ]),
 }
