@@ -6396,6 +6396,9 @@ cache_uname() {
                 ProductVersion)       osx_version=${sw_vers[i+1]} ;;
                 ProductBuildVersion)  osx_build=${sw_vers[i+1]}   ;;
             esac
+            case $osx_version in
+                1.*) darwin_name="iPhone OS" ;;
+            esac
         }
     fi
 }
