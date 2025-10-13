@@ -233,6 +233,8 @@ pub enum Preset {
     Libragender, Librafeminine, Libramasculine, Libraandrogyne, Libranonbinary,
 
     Fluidfluxa, Fluidfluxb,
+
+    Transbian,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -717,6 +719,10 @@ impl Preset {
 
             Self::Fluidfluxb => ColorProfile::from_hex_colors(vec![
                 "#c6d1d2", "#f47b9d", "#f09f9b", "#e3f09e", "#75eeea", "#52d2ed", "#c6d1d2"
+            ]),
+
+            Self::Transbian => ColorProfile::from_hex_colors(vec![
+                "#03A3E6", "#F8B4CD","#FAFBF9", "#FA9C57", "#A80864"
             ]),
         })
         .expect("preset color profiles should be valid")
