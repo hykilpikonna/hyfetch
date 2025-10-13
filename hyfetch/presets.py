@@ -1095,7 +1095,7 @@ PRESETS: dict[str, ColorProfile] = {
     
     # Adding Transbian Pride Flag - ObsoleteDev
     
-    'transbian flag': ColorProfile([
+    'transbian': ColorProfile([
         "#03A3E6",
         "#F8B4CD",
         "#FAFBF9",
