@@ -141,9 +141,9 @@ class RGB:
             g = int(hex[2:4], 16)
             b = int(hex[4:6], 16)
         elif len(hex) == 3:
-            r = int(hex[0], 16)
-            g = int(hex[1], 16)
-            b = int(hex[2], 16)
+            r = int(hex[0] * 2, 16)
+            g = int(hex[1] * 2, 16)
+            b = int(hex[2] * 2, 16)
         else:
             raise ValueError(f"Error: invalid hex length")
         return cls(r, g, b)

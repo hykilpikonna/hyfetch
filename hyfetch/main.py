@@ -503,7 +503,7 @@ def run():
                 print(f'Error: invalid hex color "{color}"')
         preset = ColorProfile(colors)
     else:
-        print(f'Preset should be a comma-separated list of hex colors, or one of the following: {', '.join(sorted(PRESETS.keys()))}')
+        print(f'Preset should be a comma-separated list of hex colors, or one of the following: {", ".join(sorted(PRESETS.keys()))}')
 
     if preset is None:
         exit(1)
