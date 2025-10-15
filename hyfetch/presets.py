@@ -1092,4 +1092,13 @@ PRESETS: dict[str, ColorProfile] = {
         "#52d2ed",
         "#c6d1d2"
     ]),
+
+    'Autism': ColorProfile([
+        "#c94a49", 
+        "#de7554", 
+        "#dbb667", 
+        "#6fa35d", 
+        "#2e7574", 
+        "#232828"
+    ]),
 }
