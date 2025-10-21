@@ -1101,4 +1101,22 @@ PRESETS: dict[str, ColorProfile] = {
         "#2e7574", 
         "#232828"
     ]),
+
+    'Cenelian': ColorProfile([
+        "#ffe7b6",
+        "#93554a",
+        "#52203a",
+        "#7e4a93",
+        "#99afd6"
+    ]),
+
+    'Transneutral': ColorProfile([
+        "#74dfff",
+        "#fffdb3",
+        "#fffc75",
+        "#fff200",
+        "#fffc75",
+        "#fffdb3",
+        "#fe8cbf"
+    ]),
 }
