@@ -781,8 +781,11 @@ fn create_config(
     // get distro string and convert it into the enum, neofetch friendly format, so we can check for small logos with the {distro}_small neofetch naming scheme.
     let tmp_dst = get_distro_name(backend).or_else(|_| get_distro_name(Backend::Neofetch)).context("failed to get distro name")?;
     let detected_dst = Some(distro.map_or_else(
-        || format!("{:?}", Distro::detect(tmp_dst).unwrap()),
-        |d| d.to_string(),
+        || {
+            Distro::detect(&tmp_dst)
+                .map_or("".to_string(), |d| format!("{:?}", d).to_lowercase())
+        },
+        |d| d.to_string().to_lowercase(),
     ));
 
     // in case someone specified {distro}_small already in the --distro arg
