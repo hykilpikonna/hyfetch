@@ -147,6 +147,10 @@
     "colors": ["#D72800", "#F17623", "#FF9C56", "#FFFDF6", "#FFCE89", "#FEAF02", "#A37000"],
     "comment": "colorpicked from https://commons.wikimedia.org/wiki/File:Butch_Flag.png"
   },
+  "femme" : {
+    "colors": ["#FF1A87", "#FF6AB1", "#FFFFFF", "#9A0731", "51091D"],
+    "comment": "colorpicked from https://lgbtqia.wiki/wiki/Femme"
+  },
   "leather": {
     "colors": ["#000000", "#252580", "#000000", "#252580", "#FFFFFF", "#252580", "#000000", "#252580", "#000000"],
     "comment": "colorpicked from https://commons.wikimedia.org/wiki/File:Leather,_Latex,_and_BDSM_pride_-_Light.svg"
