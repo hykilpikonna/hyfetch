@@ -267,8 +267,20 @@ type PresetMap = IndexMap<String, PresetEntry>;
 fn preset_codegen(json_path: &Path, out_path: &Path) -> Result<()> {
     // 1. Read and parse the JSON file
     let json_str = fs::read_to_string(json_path)?;
-    let map: PresetMap = serde_json::from_str(&json_str)?;
+    let mut map: PresetMap = serde_json::from_str(&json_str)?;
     let mut f = BufWriter::new(fs::File::create(&out_path)?);
+
+    map.entry("femme".to_string()).or_insert(PresetEntry::Complex {
+
+        colors: vec![
+            "#FF1A87".to_string(),
+            "#FF6AB1".to_string(),
+            "#FFFFFF".to_string(),
+            "#9A0731".to_string(),
+            "#51091D".to_string(),
+        ],
+        weights: None,
+    });
 
     // 2. Build the code string
     let mut code_decl = String::new();
