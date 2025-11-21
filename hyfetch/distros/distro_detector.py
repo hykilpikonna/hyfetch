@@ -1448,6 +1448,10 @@ def detect(name: str) -> AsciiArt | None:
         from .void_small import void_small
         return void_small
     
+    if name == 'void_old':
+        from .void_old import void_old
+        return void_old
+    
     if name.startswith('void'):
         from .void import void
         return void
@@ -1507,6 +1511,10 @@ def detect(name: str) -> AsciiArt | None:
     if name.startswith('soda'):
         from .soda import soda
         return soda
+    
+    if name.startswith('secureblue'):
+        from .secureblue import secureblue
+        return secureblue
     
     if name.startswith('krassos') or name.startswith('krass'):
         from .krassos import krassos

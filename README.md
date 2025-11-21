@@ -129,6 +129,8 @@ cargo install --git https://github.com/hykilpikonna/hyfetch
 
 <!-- CHANGELOG STARTS HERE --->
 
+### 2.0.5
+
 **✨ Features & Enhancements**
 
 * Added support for Secureblue ([#434](https://github.com/hykilpikonna/hyfetch/pull/434)).

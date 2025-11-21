@@ -2,7 +2,7 @@
 
 from . import AsciiArt
 
-void_old = AsciiArt(match=r'''"void_old"*''', color='2 8', ascii=r"""
+void_old = AsciiArt(match=r'''"void_old"''', color='2 8', ascii=r"""
 ${c1}                __.;=====;.__
             _.=+==++=++=+=+===;.
              -=+++=+===+=+=+++++=_
@@ -22,4 +22,4 @@ ${c1}     -1vvnvv.     `~+++`        ++|+++
             ~|Invnvnvvnvvvnnv}+`
                -~|{*l}*|
 """)
-
+    

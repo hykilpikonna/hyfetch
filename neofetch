@@ -28,7 +28,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-version=8.0.4
+version=8.0.5
 
 # Fallback to a value of '5' for shells which support bash
 # but do not set the 'BASH_' shell variables (osh).
@@ -893,17 +893,17 @@ image_source="auto"
 # Pisi, PNM Linux, Pop!_OS, Porteus, PostMarketOS, Profelis SambaBOX, Proxmox, PuffOS, Puppy,
 # PureOS, Q4OS, Qubes, Qubyt, Quibian, Radix, Raspbian, ravynOS, Reborn OS, Red Star, Redcore,
 # Redhat, Refracted Devuan, Regata, Regolith, RhaymOS, Rhino Linux, rocky, Rosa, Sabayon, sabotage,
-# Sailfish, SalentOS, Salient OS, Salix, Sasanqua, Scientific, semc, Septor, Serene, SharkLinux,
-# ShastraOS, Siduction, SkiffOS, Slackel, Slackware, SliTaz, SmartOS, Soda, Solus, Source Mage,
-# Sparky, Star, SteamOS, Stock Linux, Sulin, SunOS, SwagArch, t2, Tails, Tatra, TeArch, TorizonCore,
-# Trisquel, Twister, Ubuntu, Ubuntu Budgie, Ubuntu Cinnamon, Ubuntu Kylin, Ubuntu MATE, Ubuntu
-# Studio, Ubuntu Sway, Ubuntu Touch, Ubuntu-GNOME, ubuntu_old02, Ultramarine Linux, unicodearch,
-# Univalent, Univention, Uos, UrukOS, uwuntu, Vanilla, Venom, VNux, Void, VzLinux, wii-linux-ngx,
-# Windows, Windows 10, Windows 11, Windows95, Wrt, Xenia, Xenia2, XFerience, Xray_OS, Xubuntu,
-# yiffOS, Zorin have ascii logos.
+# Sailfish, SalentOS, Salient OS, Salix, Sasanqua, Scientific, secureblue, semc, Septor, Serene,
+# SharkLinux, ShastraOS, Siduction, SkiffOS, Slackel, Slackware, SliTaz, SmartOS, Soda, Solus,
+# Source Mage, Sparky, Star, SteamOS, Stock Linux, Sulin, SunOS, SwagArch, t2, Tails, Tatra, TeArch,
+# TorizonCore, Trisquel, Twister, Ubuntu, Ubuntu Budgie, Ubuntu Cinnamon, Ubuntu Kylin, Ubuntu MATE,
+# Ubuntu Studio, Ubuntu Sway, Ubuntu Touch, Ubuntu-GNOME, ubuntu_old02, Ultramarine Linux,
+# unicodearch, Univalent, Univention, Uos, UrukOS, uwuntu, Vanilla, Venom, VNux, Void, VzLinux, wii-
+# linux-ngx, Windows, Windows 10, Windows 11, Windows95, Wrt, Xenia, Xenia2, XFerience, Xray_OS,
+# Xubuntu, yiffOS, Zorin have ascii logos.
 
-# NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu, void have 'old' logo variants, use
-# {distro}_old to use them.
+# NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu, void have 'old' logo
+# variants, use {distro}_old to use them.
 
 # NOTE: alpine, android, arch, arcolinux, artix, CalinixOS, centos, cleanjaro, crux, debian,
 # dragonfly, elementary, endeavouros, fedora, freebsd, garuda, gentoo, guix, haiku, hyperbola, kali,
@@ -6678,19 +6678,20 @@ ASCII:
                                 Qubyt, Quibian, Radix, Raspbian, ravynOS, Reborn OS, Red Star,
                                 Redcore, Redhat, Refracted Devuan, Regata, Regolith, RhaymOS, Rhino
                                 Linux, rocky, Rosa, Sabayon, sabotage, Sailfish, SalentOS, Salient
-                                OS, Salix, Sasanqua, Scientific, semc, Septor, Serene, SharkLinux,
-                                ShastraOS, Siduction, SkiffOS, Slackel, Slackware, SliTaz, SmartOS,
-                                Soda, Solus, Source Mage, Sparky, Star, SteamOS, Stock Linux, Sulin,
-                                SunOS, SwagArch, t2, Tails, Tatra, TeArch, TorizonCore, Trisquel,
-                                Twister, Ubuntu, Ubuntu Budgie, Ubuntu Cinnamon, Ubuntu Kylin,
-                                Ubuntu MATE, Ubuntu Studio, Ubuntu Sway, Ubuntu Touch, Ubuntu-GNOME,
-                                ubuntu_old02, Ultramarine Linux, unicodearch, Univalent, Univention,
-                                Uos, UrukOS, uwuntu, Vanilla, Venom, VNux, Void, VzLinux, wii-linux-
-                                ngx, Windows, Windows 10, Windows 11, Windows95, Wrt, Xenia, Xenia2,
-                                XFerience, Xray_OS, Xubuntu, yiffOS, Zorin have ascii logos.
+                                OS, Salix, Sasanqua, Scientific, secureblue, semc, Septor, Serene,
+                                SharkLinux, ShastraOS, Siduction, SkiffOS, Slackel, Slackware,
+                                SliTaz, SmartOS, Soda, Solus, Source Mage, Sparky, Star, SteamOS,
+                                Stock Linux, Sulin, SunOS, SwagArch, t2, Tails, Tatra, TeArch,
+                                TorizonCore, Trisquel, Twister, Ubuntu, Ubuntu Budgie, Ubuntu
+                                Cinnamon, Ubuntu Kylin, Ubuntu MATE, Ubuntu Studio, Ubuntu Sway,
+                                Ubuntu Touch, Ubuntu-GNOME, ubuntu_old02, Ultramarine Linux,
+                                unicodearch, Univalent, Univention, Uos, UrukOS, uwuntu, Vanilla,
+                                Venom, VNux, Void, VzLinux, wii-linux-ngx, Windows, Windows 10,
+                                Windows 11, Windows95, Wrt, Xenia, Xenia2, XFerience, Xray_OS,
+                                Xubuntu, yiffOS, Zorin have ascii logos.
 
-                                NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu, void
-                                have 'old' logo variants, use {distro}_old to use them.
+                                NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu,
+                                void have 'old' logo variants, use {distro}_old to use them.
 
                                 NOTE: alpine, android, arch, arcolinux, artix, CalinixOS, centos,
                                 cleanjaro, crux, debian, dragonfly, elementary, endeavouros, fedora,
