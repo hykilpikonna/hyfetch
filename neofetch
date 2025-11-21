@@ -901,7 +901,7 @@ image_source="auto"
 # Windows, Windows 10, Windows 11, Windows95, Wrt, Xenia, Xenia2, XFerience, Xray_OS, Xubuntu,
 # yiffOS, Zorin have ascii logos.
 
-# NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu have 'old' logo variants, use
+# NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu, void have 'old' logo variants, use
 # {distro}_old to use them.
 
 # NOTE: alpine, android, arch, arcolinux, artix, CalinixOS, centos, cleanjaro, crux, debian,
@@ -6688,7 +6688,7 @@ ASCII:
                                 ngx, Windows, Windows 10, Windows 11, Windows95, Wrt, Xenia, Xenia2,
                                 XFerience, Xray_OS, Xubuntu, yiffOS, Zorin have ascii logos.
 
-                                NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu
+                                NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu, void
                                 have 'old' logo variants, use {distro}_old to use them.
 
                                 NOTE: alpine, android, arch, arcolinux, artix, CalinixOS, centos,
@@ -15329,7 +15329,29 @@ ${c1}    _______
  -_______\\
 EOF
         ;;
-
+        "void_old")
+            set_colors 2 8
+            read -rd '' ascii_data <<'EOF'
+${c1}                __.;=====;.__
+            _.=+==++=++=+=+===;.
+             -=+++=+===+=+=+++++=_
+        .     -=:``     `--==+=++==.
+       _vi,    `            --+=++++:
+      .uvnvi.       _._       -==+==+.
+     .vvnvnI`    .;==|==;.     :|=||=|.
+${c2}+QmQQm${c1}pvvnv; ${c2}_yYsyQQWUUQQQm #QmQ#${c1}:${c2}QQQWUV$QQmL
+${c2} -QQWQW${c1}pvvo${c2}wZ?.wQQQE${c1}==<${c2}QWWQ/QWQW.QQWW${c1}(: ${c2}jQWQE
+${c2}  -$QQQQmmU'  jQQQ@${c1}+=<${c2}QWQQ)mQQQ.mQQQC${c1}+;${c2}jWQQ@'
+${c2}   -$WQ8Y${c1}nI:   ${c2}QWQQwgQQWV${c1}`${c2}mWQQ.jQWQQgyyWW@!
+${c1}     -1vvnvv.     `~+++`        ++|+++
+      +vnvnnv,                 `-|===
+       +vnvnvns.           .      :=-
+        -Invnvvnsi..___..=sv=.     `
+          +Invnvnvnnnnnnnnvvnn;.
+            ~|Invnvnvvnvvvnnv}+`
+               -~|{*l}*|
+EOF
+        ;;
         "Void"*)
             set_colors 8 2 7
             read -rd '' ascii_data <<'EOF'
