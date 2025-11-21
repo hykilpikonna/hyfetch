@@ -938,16 +938,19 @@ fn create_config(
         }
 
         // Save choice
-        color_align = arrangements
-            .into_iter()
-            .find_map(|(k, ca)| {
-                if k.to_lowercase() == choice {
-                    Some(ca)
-                } else {
-                    None
-                }
-            })
-            .expect("selected color alignment should be valid");
+        color_align = if choice == "horizontal" { ColorAlignment::Horizontal }
+        else if choice == "vertical" { ColorAlignment::Vertical }
+        else { 
+            arrangements.into_iter()
+                .find_map(|(k, ca)| {
+                    if k.to_lowercase() == choice {
+                        Some(ca)
+                    } else {
+                        None
+                    }
+                })
+                .expect("selected color alignment is not valid") // TODO: it sould ask the user to retry instead of panicking
+        };
         debug!(?color_align, "selected color alignment");
         break;
     }
