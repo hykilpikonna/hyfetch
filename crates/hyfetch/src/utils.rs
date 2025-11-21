@@ -85,12 +85,7 @@ where
 
     let metadata = match fs::metadata(path) {
         Ok(metadata) => metadata,
-        Err(err) if err.kind() == io::ErrorKind::NotFound => {
-            return Ok(None);
-        },
-        Err(err) => {
-            return Err(err).with_context(|| format!("failed to get metadata for {path:?}"));
-        },
+        Err(err) => return Ok(None)
     };
 
     if !metadata.is_file() {
