@@ -85,7 +85,7 @@ where
 
     let metadata = match fs::metadata(path) {
         Ok(metadata) => metadata,
-        Err(err) => return Ok(None)
+        Err(_) => return Ok(None)
     };
 
     if !metadata.is_file() {
