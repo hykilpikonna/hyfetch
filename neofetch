@@ -49,6 +49,7 @@ LANG=C
 [[ -z $GIO_EXTRA_MODULES ]] && export GIO_EXTRA_MODULES=/usr/lib/x86_64-linux-gnu/gio/modules/
 
 # Use sed -r instead of sed -E if using GNU sed.
+# shellcheck disable=SC2218
 [[ $(sed --version 2>/dev/null) =~ GNU ]] && gnu_sed=1
 sed() {
     if [[ $gnu_sed ]]; then
