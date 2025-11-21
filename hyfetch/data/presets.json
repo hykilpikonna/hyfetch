@@ -219,13 +219,13 @@
     "comment": "Sourced from https://gender.fandom.com/wiki/Fluidflux?file=FC90B24D-CA36-4FE2-A752-C9ABFC65E332.jpeg"
   },
   "fluidflux2": ["#C6D1D2", "#F47B9D", "#F09F9B", "#E3F09E", "#75EEEA", "#52D2ED", "#C6D1D2"],
+  "transbian": ["#03A3E6", "#F8B4CD","#FAFBF9", "#FA9C57", "#A80864"],
+  "autism":["#C94A49", "#DE7554", "#DBB667", "#6FA35D", "#2E7574", "#232828"],
+  "cenelian":["#FFE7B6", "#93554A", "#52203A", "#7E4A93", "#99AFD6"],
+  "transneutral":["#74DFFF", "#FFFDB3", "#FFFC75", "#FFF200", "#FFFC75", "#FFFDB3", "#FE8CBF"],
 
   "beiyang": ["#DF1B12", "#FFC600", "#01639D", "#FFFFFF", "#000000"],
   "burger": ["#F3A26A", "#498701", "#FD1C13", "#7D3829", "#F3A26A"],
   "throatlozenges": ["#2759DA", "#03940D", "#F5F100", "#F59B00", "#B71212"],
   "band": ["#2670C0", "#F5BD00", "#DC0045", "#E0608E"],
-  "transbian": ["#03A3E6", "#F8B4CD","#FAFBF9", "#FA9C57", "#A80864"],
-  "autism":["#C94A49", "#DE7554", "#DBB667", "#6FA35D", "#2E7574", "#232828"],
-  "cenelian":["#FFE7B6", "#93554A", "#52203A", "#7E4A93", "#99AFD6"],
-  "transneutral":["#74DFFF", "#FFFDB3", "#FFFC75", "#FFF200", "#FFFC75", "#FFFDB3", "#FE8CBF"]
 }
