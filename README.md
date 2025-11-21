@@ -129,6 +129,19 @@ cargo install --git https://github.com/hykilpikonna/hyfetch
 
 <!-- CHANGELOG STARTS HERE --->
 
+**✨ Features & Enhancements**
+
+* Added support for Secureblue ([#434](https://github.com/hykilpikonna/hyfetch/pull/434)).
+* Added `void_old` logo variant ([#457](https://github.com/hykilpikonna/hyfetch/pull/457)).
+* Added Femme flag ([#456](https://github.com/hykilpikonna/hyfetch/pull/456)).
+
+**🐛 Bug Fixes**
+
+* Fixed a panic when entering an invalid alignment option after rolling ([#460](https://github.com/hykilpikonna/hyfetch/issues/460)).
+* Fixed Traceback printing on KeyboardInterrupt ([#462](https://github.com/hykilpikonna/hyfetch/issues/462)).
+* Restored flags lost during Python/Rust presets merge ([#466](https://github.com/hykilpikonna/hyfetch/pull/466)).
+* Fixed a panic with file metadata access ([#465](https://github.com/hykilpikonna/hyfetch/issues/465)).
+
 ### 2.0.4
 
 **🔧 Building Pipeline Refactoring**
