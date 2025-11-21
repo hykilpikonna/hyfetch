@@ -148,7 +148,7 @@
     "comment": "colorpicked from https://commons.wikimedia.org/wiki/File:Butch_Flag.png"
   },
   "femme" : {
-    "colors": ["#FF1A87", "#FF6AB1", "#FFFFFF", "#9A0731", "#51091D"],
+    "colors": ["#FF1A87", "#FF6AB1", "#FFFFFF", "#9A0731", "51091D"],
     "comment": "colorpicked from https://lgbtqia.wiki/wiki/Femme"
   },
   "leather": {
