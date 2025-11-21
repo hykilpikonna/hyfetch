@@ -25,4 +25,8 @@ def run_rust():
 
 
 if __name__ == '__main__':
-    run_rust()
+    try:
+        run_rust()
+    except KeyboardInterrupt:
+        printc('&cThe program is interrupted by ^C, exiting...')
+        exit(0)
