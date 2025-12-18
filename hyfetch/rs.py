@@ -21,7 +21,7 @@ def run_rust():
         return
 
     # Run the rust executable, passing in all arguments
-    subprocess.run([str(pd)] + sys.argv[1:])
+    os.execv(str(pd), [str(pd), *sys.argv[1:]])
 
 
 if __name__ == '__main__':
