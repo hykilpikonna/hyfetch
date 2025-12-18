@@ -11,6 +11,7 @@
   "genderfluid": ["#FE76A2", "#FFFFFF", "#BF12D7", "#000000", "#303CBE"],
   "bisexual": ["#D60270", "#9B4F96", "#0038A8"],
   "pansexual": ["#FF1C8D", "#FFD700", "#1AB3FF"],
+  "israel": ["#0038B8", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#0038B8"],
   "polysexual": ["#F714BA", "#01D66A", "#1594F6"],
   "omnisexual": {
     "colors": ["#FE9ACE", "#FF53BF", "#200044", "#6760FE", "#8EA6FF"],
@@ -27,6 +28,7 @@
     "comment": "abrosexual used colorpicker to source from https://fyeahaltpride.tumblr.com/post/151704251345/could-you-guys-possibly-make-an-abrosexual-pride"
   },
   "asexual": ["#000000", "#A4A4A4", "#FFFFFF", "#810081"],
+  "straight": ["#000000", "#555555", "#FFFFFF", "#555555", "#000000"],
   "aromantic": ["#3BA740", "#A8D47A", "#FFFFFF", "#ABABAB", "#000000"],
   "fictosexual": {
     "colors": ["#000000", "#C4C4C4", "#A349A5", "#C4C4C4", "#000000"],
