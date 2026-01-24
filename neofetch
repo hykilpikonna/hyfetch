@@ -9142,6 +9142,24 @@ oNMMMMMMMMMMMNs`  `sy`  `oNMMMMMMMMMMMNo
 EOF
         ;;
 
+        "Codex Linux"*)
+            set_colors fg
+            read -rd '' ascii_data <<'EOF'
+${c1}#:              :+#@@@@%#
+@@#:          .*@@@@@@@@@
+@@@@#-       .@@@@@@@@@@@
+@@@@@@%-     %@@@@@@@@@@@
+@@@@@@@@%=  :@@@@%%%%@@@@
+@@@@@@@@@@%==*-:     .:=#
+:*@@@@@@@@@@=
+  :*@@@@@@@@=
+    .*@@@@@@=
+      .+@@@@=
+        .+%@=
+           +=
+EOF
+        ;;
+
         "Condres"*)
             set_colors 2 3 6
             read -rd '' ascii_data <<'EOF'
