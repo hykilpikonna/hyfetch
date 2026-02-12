@@ -155,7 +155,13 @@ pub fn add_pkg_path() -> Result<()> {
     // Get PATH
     let pv = &env::var_os("PATH").context("`PATH` env var is not set or invalid")?;
     let mut path = env::split_paths(pv).collect::<Vec<_>>();
-    let exe = env::current_exe().context("failed to get path of current running executable")?;
+    let exe = match env::current_exe() {
+        Ok(exe) => exe,
+        Err(e) => {
+            debug!("Failed to get path of current running executable: {}", e);
+            return Ok(());
+        }
+    };
     let base = exe.parent().unwrap();
 
     // Add from bin: ../git, ../fastfetch, ../scripts
