@@ -352,6 +352,10 @@ def detect(name: str) -> AsciiArt | None:
         from .clover import clover
         return clover
     
+    if name.startswith('codex linux'):
+        from .codex_linux import codex_linux
+        return codex_linux
+    
     if name.startswith('condres'):
         from .condres import condres
         return condres
@@ -1535,6 +1539,10 @@ def detect(name: str) -> AsciiArt | None:
     if name.startswith('tatra'):
         from .tatra import tatra
         return tatra
+    
+    if name.startswith('zirconium'):
+        from .zirconium import zirconium
+        return zirconium
     
     if name.startswith('zorin'):
         from .zorin import zorin
