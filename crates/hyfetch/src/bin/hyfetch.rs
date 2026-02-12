@@ -52,6 +52,16 @@ fn main() -> Result<()> {
 
     let options = options().run();
 
+    // Read ascii file first to avoid any issues with file descriptors being closed by other operations, and to allow CLI arguments to override config. (https://github.com/hykilpikonna/hyfetch/issues/475)
+    let cli_ascii = if let Some(path) = &options.ascii_file {
+        Some(RawAsciiArt {
+            asc: fs::read_to_string(path).with_context(|| format!("failed to read ascii from {path:?}"))?,
+            fg: Vec::new(),
+        })
+    } else {
+        None
+    };
+
     let debug_mode = options.debug;
 
     init_tracing_subsriber(debug_mode).context("failed to init tracing subscriber")?;
@@ -177,14 +187,10 @@ fn main() -> Result<()> {
     };
     debug!(?color_profile, "lightened color profile");
 
-    let asc = if let Some(path_str) = config.custom_ascii_path {
+    let asc = if let Some(asc) = cli_ascii {
+        asc
+    } else if let Some(path_str) = config.custom_ascii_path {
         let path = PathBuf::from(path_str);
-        RawAsciiArt {
-            asc: fs::read_to_string(&path)
-                .with_context(|| format!("failed to read ascii from {path:?}"))?,
-            fg: Vec::new(),
-        }
-    } else if let Some(path) = options.ascii_file {
         RawAsciiArt {
             asc: fs::read_to_string(&path)
                 .with_context(|| format!("failed to read ascii from {path:?}"))?,
