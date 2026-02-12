@@ -2032,7 +2032,7 @@ get_uptime() {
         ;;
 
         QNX)
-            boot=$(date -d "$(pidin info | grep -oP 'BootTime:\K[^$]+')" +%s)
+            boot=$(date -d "$(pidin info | sed -n 's/.*BootTime:\([^$]*\)/\1/p')" +%s)
             now=$(date +%s)
 
             s=$((now - boot))
@@ -5287,6 +5287,12 @@ get_battery() {
             battery0full="$(awk -F '[^0-9]*' 'NR==2 {print $4}' /dev/power/acpi_battery/0)"
             battery0now="$(awk -F '[^0-9]*' 'NR==5 {print $4}' /dev/power/acpi_battery/0)"
             battery="$((battery0full * 100 / battery0now))%"
+        ;;
+
+        "QNX")
+            battery="$(cat /pps/system/BattMgr/status | sed -n 's/.*"StateOfCharge":\([0-9]*\).*/\1/p')%"
+            state="$(cat /pps/system/BattMgr/status | sed -n 's/.*"ChargerStatus":"\([^"]*\)".*/\1/p' )"
+            [[ "$state" == "CHARGING" ]] && battery_state="charging"
         ;;
     esac
 
@@ -9182,6 +9188,24 @@ oNMMMMMMMMMMMNs`  `sy`  `oNMMMMMMMMMMMNo
            `oNMMMMMMMMMMMMNo`
              `oNMMMNNMMMNs`
                `omo``oNs`
+EOF
+        ;;
+
+        "Codex Linux"*)
+            set_colors fg
+            read -rd '' ascii_data <<'EOF'
+${c1}#:              :+#@@@@%#
+@@#:          .*@@@@@@@@@
+@@@@#-       .@@@@@@@@@@@
+@@@@@@%-     %@@@@@@@@@@@
+@@@@@@@@%=  :@@@@%%%%@@@@
+@@@@@@@@@@%==*-:     .:=#
+:*@@@@@@@@@@=
+  :*@@@@@@@@=
+    .*@@@@@@=
+      .+@@@@=
+        .+%@=
+           +=
 EOF
         ;;
 
