@@ -4663,6 +4663,8 @@ get_term() {
         *)                               term="${TERM_PROGRAM/\.app}" ;;
     esac
 
+    [[ $os == QNX ]] && term="$(pidin session 2> /dev/null | awk 'NR==2 {n=split($NF, a, "/"); print a[n]}')"
+
     # Most likely TosWin2 on FreeMiNT - quick check
     [[ "$TERM" == "tw52" || "$TERM" == "tw100" ]] && term="TosWin2"
     [[ "$SSH_CONNECTION" ]] && term="$SSH_TTY"
