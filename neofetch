@@ -891,7 +891,7 @@ image_source="auto"
 # Tumbleweed, openSUSE Tumbleweed-Slowroll, OPNsense, Oracle, orchid, OS Elbrus, PacBSD, Panwah,
 # Parabola, parch, Pardus, Parrot, Parsix, PCBSD, PCLinuxOS, pearOS, Pengwin, Pentoo, Peppermint,
 # Peropesis, phyOS, PikaOS, Pisi, PNM Linux, Pop!_OS, Porteus, PostMarketOS, Profelis SambaBOX,
-# Proxmox, PuffOS, Puppy, PureOS, Q4OS, Qubes, Qubyt, Quibian, Radix, Raspbian, ravynOS, Reborn OS,
+# Proxmox, PuffOS, Puppy, PureOS, Q4OS, QNX, Qubes, Qubyt, Quibian, Radix, Raspbian, ravynOS, Reborn OS,
 # Red Star, Redcore, Redhat, Refracted Devuan, Regata, Regolith, RhaymOS, Rhino Linux, rocky, Rosa,
 # Sabayon, sabotage, Sailfish, SalentOS, Salient OS, Salix, Sasanqua, Scientific, secureblue, semc,
 # Septor, Serene, SharkLinux, ShastraOS, Siduction, SkiffOS, Slackel, Slackware, SliTaz, SmartOS,
@@ -1046,6 +1046,7 @@ get_os() {
         Interix)  os=Interix ;;
         Ironclad) os=Ironclad;;
         OSF1)     os=digitalUNIX ;;
+        QNX)      os=QNX ;;
 
         Linux|GNU*)
             os=Linux
@@ -1523,6 +1524,10 @@ get_distro() {
         digitalUNIX)
             distro="digital UNIX ${kernel_version}"
         ;;
+
+        QNX)
+            distro=$(cat /pps/services/deviceproperties | awk -F'::' '$1 == "device_os" { print $2 }')
+            distro="${distro} ($(cat /base/etc/os.version))"
     esac
 
     distro=${distro//Enterprise Server}
@@ -1531,7 +1536,7 @@ get_distro() {
 
     # Get OS architecture.
     case $os in
-        Solaris|illumos|AIX|Haiku|IRIX|FreeMiNT|BSD|digitalUNIX)
+        Solaris|illumos|AIX|Haiku|IRIX|FreeMiNT|BSD|digitalUNIX|QNX)
             machine_arch=$(uname -p)
         ;;
 
@@ -1868,6 +1873,9 @@ get_model() {
             model="${model/Manufacturer}"
             model="${model/Model}"
         ;;
+
+        QNX)
+            model=$(cat /pps/services/deviceproperties | awk -F'::' '/modelname/ {m=$2} /modelnumber/ {n=$2} END {print m" ("n")"}')
     esac
 
     # Remove dummy OEM info.
@@ -2021,6 +2029,13 @@ get_uptime() {
 
         Haiku)
             s=$(($(system_time) / 1000000))
+        ;;
+
+        QNX)
+            boot=$(date -d "$(pidin info | sed -n 's/.*BootTime:\([^$]*\)/\1/p')" +%s)
+            now=$(date +%s)
+
+            s=$((now - boot))
         ;;
     esac
 
@@ -2401,6 +2416,11 @@ get_packages() {
         IRIX)
             manager=swpkg
             pkgs_h=3 tot versions -b && ((packages-=3))
+        ;;
+
+        QNX)
+            has qpkg && tot qpkg list && ((packages-=4))
+            has apk  && tot apk info
         ;;
     esac
 
@@ -3358,6 +3378,17 @@ END
             cores="$(/dev/fs/C/Windows/System32/wbem/WMIC.exe cpu get NumberOfCores)"
             cores="${cores/NumberOfCores}"
         ;;
+
+        "QNX")
+             # Get CPU name
+             cpu="$(uname -m | cut -d '_' -f 1)"
+
+             # Get CPU speed
+             speed="$(pidin info | grep -o '[0-9]\+MHz' | head -1 | tr -d 'MHz')"
+
+             # Get CPU cores
+             cores="$(pidin info | grep -c '^Processor[0-9]')"
+         ;;
     esac
 
     # Remove un-needed patterns from cpu output.
@@ -3779,6 +3810,14 @@ get_memory() {
             mem_free="$(( $(showmem -f) * 1000 ))"
             mem_used="$(( $(showmem -u) * 1000 ))"
             mem_total="$(( $(showmem -t) * 1000 ))"
+
+        ;;
+
+        "QNX")
+            mem_used="$(( $(pidin info | sed -n 's/.*FreeMem:\([0-9][0-9]*\)MB\/.*/\1/p') * 1024 ))"
+            mem_total="$(( $(pidin info | sed -n 's|.*MB/||;s|MB Boot.*||p') * 1024 ))"
+            mem_used="$((mem_total - mem_free))"
+
     esac
 
     [[ "$memory_percent" == "on" ]] && ((mem_perc=mem_used * 100 / mem_total))
@@ -4211,6 +4250,10 @@ get_resolution() {
             # Need to block X11 queries
         ;;
 
+        "QNX")
+            resolution=$(cat /pps/services/deviceproperties | awk -F'::' '$1 == "screen_res" { print $2 }')
+        ;;
+
         *)
             if type -p xrandr >/dev/null && [[ $DISPLAY && -z $WAYLAND_DISPLAY ]]; then
                 case $refresh_rate in
@@ -4619,6 +4662,8 @@ get_term() {
         "Hyper")                         term="HyperTerm"             ;;
         *)                               term="${TERM_PROGRAM/\.app}" ;;
     esac
+
+    [[ $os == QNX ]] && term="$(pidin session 2> /dev/null | awk 'NR==2 {n=split($NF, a, "/"); print a[n]}')"
 
     # Most likely TosWin2 on FreeMiNT - quick check
     [[ "$TERM" == "tw52" || "$TERM" == "tw100" ]] && term="TosWin2"
@@ -5244,6 +5289,12 @@ get_battery() {
             battery0full="$(awk -F '[^0-9]*' 'NR==2 {print $4}' /dev/power/acpi_battery/0)"
             battery0now="$(awk -F '[^0-9]*' 'NR==5 {print $4}' /dev/power/acpi_battery/0)"
             battery="$((battery0full * 100 / battery0now))%"
+        ;;
+
+        "QNX")
+            battery="$(cat /pps/system/BattMgr/status | sed -n 's/.*"StateOfCharge":\([0-9]*\).*/\1/p')%"
+            state="$(cat /pps/system/BattMgr/status | sed -n 's/.*"ChargerStatus":"\([^"]*\)".*/\1/p' )"
+            [[ "$state" == "CHARGING" ]] && battery_state="charging"
         ;;
     esac
 
@@ -6674,7 +6725,7 @@ ASCII:
                                 OS Elbrus, PacBSD, Panwah, Parabola, parch, Pardus, Parrot, Parsix,
                                 PCBSD, PCLinuxOS, pearOS, Pengwin, Pentoo, Peppermint, Peropesis,
                                 phyOS, PikaOS, Pisi, PNM Linux, Pop!_OS, Porteus, PostMarketOS,
-                                Profelis SambaBOX, Proxmox, PuffOS, Puppy, PureOS, Q4OS, Qubes,
+                                Profelis SambaBOX, Proxmox, PuffOS, Puppy, PureOS, Q4OS, QNX, Qubes,
                                 Qubyt, Quibian, Radix, Raspbian, ravynOS, Reborn OS, Red Star,
                                 Redcore, Redhat, Refracted Devuan, Regata, Regolith, RhaymOS, Rhino
                                 Linux, rocky, Rosa, Sabayon, sabotage, Sailfish, SalentOS, Salient
@@ -13394,6 +13445,26 @@ ${c1}:##############.      ${c2}:======:
       ${c1}:###########         ${c2}.=====:
         ${c1}.#########           ${c2}.=:
             ${c1}.#####
+EOF
+        ;;
+
+        "Blackberry 10"* | "QNX"*)
+            set_colors 1
+            read -rd '' ascii_data <<'EOF'
+${c1}    .KMMMMMbo     .KMMMMMbo
+    aMMMMMMMMb    aMMMMMMMMb
+   ,KMMMMMMMMp   ,KMMMMMMMMp
+   AMMMMMMMP*    AMMMMMMMP*   ,KMMMMMbo
+                              aMMMMMMMMb
+ .KMMMMMbo     .KMMMMMbo     .KMMMMMMMMp
+ aMMMMMMMMb    aMMMMMMMMb    AMMMMMMMP*
+,KMMMMMMMMp   .KMMMMMMMMp
+AMMMMMMMP*    AMMMMMMMP*    .KMMMMMbo
+                            aMMMMMMMMb
+            .KMMMMMbo      ,KMMMMMMMMp
+            aMMMMMMMMb     AMMMMMMMP*
+           ,KMMMMMMMMp
+           AMMMMMMMP*
 EOF
         ;;
 
