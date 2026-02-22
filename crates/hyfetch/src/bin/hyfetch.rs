@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::cmp;
 use std::fmt::Write as _;
 use std::fs::{self, File};
-use std::io::{self, IsTerminal as _, Read as _};
+use std::io::{self, IsTerminal as _, Read as _, Write};
 use std::iter;
 use std::iter::zip;
 use std::num::NonZeroU8;
@@ -10,6 +10,8 @@ use std::path::{Path, PathBuf};
 
 use aho_corasick::AhoCorasick;
 use anyhow::{Context as _, Result};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use deranged::RangedU8;
 use enterpolation::bspline::BSpline;
 use enterpolation::{Curve as _, Generator as _};
@@ -453,6 +455,40 @@ fn create_config(
     //////////////////////////////
     // 3. Choose preset
 
+    struct RawModeGuard {
+        enabled: bool,
+    }
+
+    impl RawModeGuard {
+        fn new() -> Result<Self> {
+            Ok(Self { enabled: false })
+        }
+
+        fn enable(&mut self) -> Result<()> {
+            if !self.enabled {
+                enable_raw_mode().context("failed to enable terminal raw mode")?;
+                self.enabled = true;
+            }
+            Ok(())
+        }
+
+        fn disable(&mut self) -> Result<()> {
+            if self.enabled {
+                disable_raw_mode().context("failed to disable terminal raw mode")?;
+                self.enabled = false;
+            }
+            Ok(())
+        }
+    }
+
+    impl Drop for RawModeGuard {
+        fn drop(&mut self) {
+            if self.enabled {
+                let _ = disable_raw_mode();
+            }
+        }
+    }
+
     // Create flag lines
     let mut flags = Vec::with_capacity(Preset::COUNT);
     let spacing = {
@@ -479,7 +515,11 @@ fn create_config(
             name = preset.as_ref(),
             spacing = usize::from(spacing)
         );
-        flags.push([name, flag.clone(), flag.clone(), flag]);
+        flags.push((
+            preset.clone(),
+            [name, flag.clone(), flag.clone(), flag],
+            preset.as_ref().to_ascii_lowercase(),
+        ));
     }
 
     // Calculate flags per row
@@ -489,34 +529,28 @@ fn create_config(
         let rows_per_page = (term_h.saturating_sub(13) / 5).clamp(1, u8::MAX.into()) as u8;
         (flags_per_row, rows_per_page)
     };
-    let num_pages = (Preset::COUNT.div_ceil(flags_per_row as usize * rows_per_page as usize)).clamp(0, u8::MAX.into()) as u8;
+    let flags_per_page = usize::from(flags_per_row) * usize::from(rows_per_page);
 
-    // Create pages
-    let mut pages = Vec::with_capacity(usize::from(num_pages));
-    for flags in flags.chunks(usize::from(
-        u16::from(flags_per_row)
-            .checked_mul(u16::from(rows_per_page))
-            .unwrap(),
-    )) {
-        let mut page = Vec::with_capacity(usize::from(rows_per_page));
-        for flags in flags.chunks(usize::from(flags_per_row)) {
-            page.push(flags);
+    fn filter_flag_indices(query: &str, flags: &[(Preset, [String; 4], String)]) -> Vec<usize> {
+        if query.is_empty() {
+            return (0..flags.len()).collect();
         }
-        pages.push(page);
+
+        let mut matched = flags
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, (_, _, preset_name))| {
+                let position = preset_name.find(query)?;
+                Some((idx, preset_name.starts_with(query), position))
+            })
+            .collect::<Vec<_>>();
+
+        // Prefix matches are shown first, then other substring matches ordered by earliest index.
+        matched.sort_by_key(|&(idx, is_prefix, position)| (!is_prefix, position, idx));
+        matched.into_iter().map(|(idx, _, _)| idx).collect()
     }
 
-    let print_flag_page = |page, page_num: u8| -> Result<()> {
-        clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
-        print_title_prompt(option_counter, "Let's choose a flag!");
-        println!("Available flag presets:\nPage: {page_num} of {num_pages}\n", page_num = page_num + 1);
-        for &row in page {
-            print_flag_row(row, color_mode).context("failed to print flag row")?;
-        }
-        println!();
-        Ok(())
-    };
-
-    fn print_flag_row(row: &[[String; 4]], color_mode: AnsiMode) -> Result<()> {
+    fn print_flag_row(row: &[&[String; 4]], color_mode: AnsiMode) -> Result<()> {
         for i in 0..4 {
             let mut line = Vec::new();
             for flag in row {
@@ -539,32 +573,138 @@ fn create_config(
         )
         .expect("coloring text with default preset should not fail");
 
+    let print_flag_page = |filtered_indices: &[usize],
+                           page_num: usize,
+                           filter: &str,
+                           hint: Option<&str>|
+     -> Result<()> {
+        let num_pages = filtered_indices.len().div_ceil(flags_per_page).max(1);
+        clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
+        print_title_prompt(option_counter, "Let's choose a flag!");
+        println!(
+            "Available flag presets:\nPage: {page} of {num_pages}\n",
+            page = page_num + 1
+        );
+
+        let start = page_num * flags_per_page;
+        let end = (start + flags_per_page).min(filtered_indices.len());
+        let mut visible_rows: usize = 0;
+        if start >= end {
+            println!("No presets matched this filter.\n");
+        } else {
+            for row in filtered_indices[start..end].chunks(usize::from(flags_per_row)) {
+                let row = row
+                    .iter()
+                    .map(|&idx| &flags[idx].1)
+                    .collect::<Vec<&[String; 4]>>();
+                print_flag_row(&row, color_mode).context("failed to print flag row")?;
+                visible_rows += 1;
+            }
+            println!();
+        }
+        // Keep the prompt anchored by reserving a full page worth of flag rows.
+        for _ in visible_rows..usize::from(rows_per_page) {
+            for _ in 0..5 {
+                println!();
+            }
+        }
+
+        println!(
+            "Use arrow keys to go to the previous/next page. Type to filter and press Enter to select."
+        );
+        printc(
+            format!(
+                "Which {preset_default_colored} do you want to use? (default: {})",
+                Preset::Rainbow.as_ref()
+            ),
+            color_mode,
+        )
+        .context("failed to print preset prompt")?;
+        print!("> {filter}");
+        io::stdout().flush().context("failed to flush preset prompt")?;
+
+        if let Some(hint) = hint {
+            println!("{hint}");
+        }
+        Ok(())
+    };
+
     let preset: Preset;
     let color_profile;
 
-    let mut page: u8 = 0;
+    let mut page: usize = 0;
+    let mut filter = String::new();
+    let mut hint: Option<&str> = None;
+    let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
     loop {
-        print_flag_page(&pages[usize::from(page)], page).context("failed to print flag page")?;
+        raw_mode
+            .disable()
+            .context("failed to disable raw mode for rendering")?;
+        let filter_lower = filter.to_ascii_lowercase();
+        let filtered_indices = filter_flag_indices(&filter_lower, &flags);
+        let num_pages = filtered_indices.len().div_ceil(flags_per_page).max(1);
+        page = page.min(num_pages - 1);
 
-        let mut opts: Vec<&str> = <Preset as VariantNames>::VARIANTS.into();
-        opts.extend(["next", "n", "prev", "p"]);
+        print_flag_page(&filtered_indices, page, &filter, hint)
+            .context("failed to print flag page")?;
+        hint = None;
 
-        println!("Enter '[n]ext' to go to the next page and '[p]rev' to go to the previous page.");
-        let selection = literal_input(
-            format!("Which {preset_default_colored} do you want to use? "),
-            &opts[..],
-            Preset::Rainbow.as_ref(),
-            false,
-            color_mode,
-        )
-        .context("failed to ask for choice input")
-        .context("failed to select preset")?;
-        if selection == "next" || selection == "n" {
-            page = (page + 1) % num_pages;
-        } else if selection == "prev" || selection == "p" {
+        raw_mode
+            .enable()
+            .context("failed to enable raw mode for key input")?;
+        let event = event::read().context("failed to read keyboard event")?;
+        let Event::Key(key) = event else {
+            continue;
+        };
+        if !matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat) {
+            continue;
+        }
+
+        match key.code {
+            KeyCode::Enter => {
+                let selection = flags
+                    .iter()
+                    .find(|(_, _, name)| *name == filter_lower)
+                    .map(|(preset, _, _)| *preset)
+                    .or_else(|| filtered_indices.first().map(|&idx| flags[idx].0));
+                preset = selection.unwrap_or(Preset::Rainbow);
+                    break;
+            },
+            KeyCode::Left | KeyCode::Up => {
             page = (page + num_pages - 1) % num_pages;
-        } else {
-            preset = selection.parse().expect("selected preset should be valid");
+            },
+            KeyCode::Right | KeyCode::Down => {
+                page = (page + 1) % num_pages;
+            },
+            KeyCode::Backspace => {
+                filter.pop();
+                page = 0;
+            },
+            KeyCode::Esc => {
+                filter.clear();
+                page = 0;
+            },
+            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                raw_mode
+                    .disable()
+                    .context("failed to disable raw mode before interrupting")?;
+                println!();
+                return Err(anyhow::anyhow!("interrupted by user"));
+            },
+            KeyCode::Char(c)
+                if !key.modifiers.contains(KeyModifiers::CONTROL)
+                    && !key.modifiers.contains(KeyModifiers::ALT) =>
+            {
+                filter.push(c);
+                page = 0;
+            },
+            _ => {},
+        }
+    }
+    raw_mode
+        .disable()
+        .context("failed to disable raw mode after preset selection")?;
+
             debug!(?preset, "selected preset");
             color_profile = preset.color_profile();
             update_title(
@@ -581,9 +721,14 @@ fn create_config(
                     )
                     .expect("coloring text with selected preset should not fail"),
             );
-            break;
-        }
-    }
+    printc(
+        format!(
+            "Which {preset_default_colored} do you want to use? {}\n",
+            preset.as_ref()
+        ),
+        color_mode,
+    )
+    .context("failed to print preset selection summary")?;
 
     //////////////////////////////
     // 4. Dim/lighten colors

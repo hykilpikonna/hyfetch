@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 import random
+import sys
 import traceback
 from itertools import permutations, islice
 from math import ceil
@@ -126,62 +127,169 @@ def create_config() -> Config:
     ##############################
     # 3. Choose preset
     # Create flags = [[lines]]
-    flags = []
+    flag_entries = []
     spacing = max(max(len(k) for k in PRESETS.keys()), 20)
     for name, preset in PRESETS.items():
         flag = preset.color_text(' ' * spacing, foreground=False)
-        flags.append([name.center(spacing), flag, flag, flag])
+        flag_entries.append((name, [name.center(spacing), flag, flag, flag], name.lower()))
 
     # Calculate flags per row
-    flags_per_row = term_size()[0] // (spacing + 2)
+    flags_per_row = max(1, term_size()[0] // (spacing + 2))
     row_per_page = max(1, (term_size()[1] - 13) // 5)
-    num_pages = ceil(len(flags) / (flags_per_row * row_per_page))
+    flags_per_page = flags_per_row * row_per_page
 
-    # Create pages
-    pages = []
-    for i in range(num_pages):
-        page = []
-        for j in range(row_per_page):
-            page.append(flags[:flags_per_row])
-            flags = flags[flags_per_row:]
-            if not flags:
-                break
-        pages.append(page)
+    def filter_flag_indices(query: str) -> list[int]:
+        if not query:
+            return list(range(len(flag_entries)))
 
-    def print_flag_page(page: list[list[list[str]]], page_num: int):
+        matched = []
+        for idx, (_, _, lower_name) in enumerate(flag_entries):
+            pos = lower_name.find(query)
+            if pos == -1:
+                continue
+            matched.append((0 if lower_name.startswith(query) else 1, pos, idx))
+        matched.sort()
+        return [idx for _, _, idx in matched]
+
+    def print_flag_page(filtered_indices: list[int], page_num: int, text_filter: str, hint: str | None):
+        num_pages = max(1, ceil(len(filtered_indices) / flags_per_page))
         clear_screen(title)
         print_title_prompt("Let's choose a flag!")
         printc('Available flag presets:')
         print(f'Page: {page_num + 1} of {num_pages}')
         print()
-        for i in page:
-            print_flag_row(i)
-        print()
+
+        start = page_num * flags_per_page
+        end = min(start + flags_per_page, len(filtered_indices))
+
+        if start >= end:
+            print('No presets matched this filter.')
+            print()
+        else:
+            current = filtered_indices[start:end]
+            for i in range(0, len(current), flags_per_row):
+                row = [flag_entries[idx][1] for idx in current[i:i + flags_per_row]]
+                print_flag_row(row)
+            print()
+
+        tmp = PRESETS['rainbow'].set_light_dl_def(light_dark).color_text('preset')
+        print('Use arrow keys to go to the previous/next page. Type to filter and press Enter to select.')
+        printc(f'Which {tmp} do you want to use? (default: rainbow)')
+        print(f'> {text_filter}', end='', flush=True)
+        if hint:
+            print(f'\n{hint}', end='')
 
     def print_flag_row(current: list[list[str]]):
         [printc('  '.join(line)) for line in zip(*current)]
         print()
 
-    page = 0
-    while True:
-        print_flag_page(pages[page], page)
+    def select_preset_prompt_toolkit() -> str:
+        from prompt_toolkit import PromptSession
+        from prompt_toolkit.application.current import get_app
+        from prompt_toolkit.formatted_text import ANSI
+        from prompt_toolkit.key_binding import KeyBindings
 
-        tmp = PRESETS['rainbow'].set_light_dl_def(light_dark).color_text('preset')
-        opts = list(PRESETS.keys())
-        if page < num_pages - 1:
-            opts.append('next')
-        if page > 0:
-            opts.append('prev')
-        print("Enter 'next' to go to the next page and 'prev' to go to the previous page.")
-        preset = literal_input(f'Which {tmp} do you want to use? ', opts, 'rainbow', show_ops=False)
-        if preset == 'next':
-            page += 1
-        elif preset == 'prev':
-            page -= 1
-        else:
-            _prs = PRESETS[preset]
-            update_title('Selected flag', _prs.set_light_dl_def(light_dark).color_text(preset))
-            break
+        page_num = 0
+        prompt_header = PRESETS['rainbow'].set_light_dl_def(light_dark).color_text('preset')
+        kb = KeyBindings()
+        last_filter = ''
+
+        def current_num_pages() -> int:
+            text = get_app().current_buffer.text.lower().strip()
+            indices = filter_flag_indices(text)
+            return max(1, ceil(len(indices) / flags_per_page))
+
+        @kb.add('left')
+        @kb.add('up')
+        def _prev_page(event):
+            nonlocal page_num
+            page_num = (page_num + current_num_pages() - 1) % current_num_pages()
+            event.app.invalidate()
+
+        @kb.add('right')
+        @kb.add('down')
+        def _next_page(event):
+            nonlocal page_num
+            page_num = (page_num + 1) % current_num_pages()
+            event.app.invalidate()
+
+        @kb.add('escape')
+        def _clear_filter(event):
+            nonlocal page_num
+            event.current_buffer.text = ''
+            event.current_buffer.cursor_position = 0
+            page_num = 0
+            event.app.invalidate()
+
+        def build_preset_lines(text_filter: str):
+            nonlocal page_num
+            filtered_indices = filter_flag_indices(text_filter.lower().strip())
+            num_pages = max(1, ceil(len(filtered_indices) / flags_per_page))
+            page_num = min(page_num, num_pages - 1)
+
+            lines = [
+                color(f"&a{option_counter}. Let's choose a flag!&r"),
+                "Available flag presets:",
+                f"Page: {page_num + 1} of {num_pages}",
+                "",
+            ]
+
+            start = page_num * flags_per_page
+            end = min(start + flags_per_page, len(filtered_indices))
+            visible_row_count = 0
+            if start >= end:
+                lines.append("No presets matched this filter.")
+                lines.append("")
+                visible_row_count = 0
+            else:
+                current = filtered_indices[start:end]
+                for i in range(0, len(current), flags_per_row):
+                    row = [flag_entries[idx][1] for idx in current[i:i + flags_per_row]]
+                    lines.extend('  '.join(line) for line in zip(*row))
+                    lines.append("")
+                    visible_row_count += 1
+
+            # Keep prompt at a fixed vertical position by padding to a full page height.
+            missing_rows = max(0, row_per_page - visible_row_count)
+            lines.extend([""] * (missing_rows * 5))
+
+            lines.append(
+                "Use arrow keys to go to the previous/next page. Type to filter and press Enter to select."
+            )
+            lines.append(f"Which {prompt_header} do you want to use? (default: rainbow)")
+            return lines
+
+        def prompt_message():
+            nonlocal last_filter
+            app = get_app()
+            text_filter = app.current_buffer.text
+            last_filter = text_filter
+
+            lines = build_preset_lines(text_filter)
+            return ANSI('\n'.join(lines) + '\n> ')
+
+        clear_screen(title)
+        session = PromptSession(key_bindings=kb)
+        try:
+            selection = session.prompt(prompt_message).strip().lower()
+        except KeyboardInterrupt:
+            clear_screen(title)
+            for line in build_preset_lines(last_filter):
+                print(line)
+            print(f"> {last_filter}")
+            raise
+
+        filtered_indices = filter_flag_indices(selection)
+        if selection in PRESETS:
+            return selection
+        if filtered_indices:
+            return flag_entries[filtered_indices[0]][0]
+        return 'rainbow'
+
+    preset = select_preset_prompt_toolkit()
+
+    _prs = PRESETS[preset]
+    update_title('Selected flag', _prs.set_light_dl_def(light_dark).color_text(preset))
 
     #############################
     # 4. Dim/lighten colors
