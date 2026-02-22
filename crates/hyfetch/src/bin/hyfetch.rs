@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::cmp;
+use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::fs::{self, File};
 use std::io::{self, IsTerminal as _, Read as _};
@@ -21,7 +22,7 @@ use hyfetch::color_util::{
     NeofetchAsciiIndexedColor, PresetIndexedColor, Theme as _, ToAnsiString as _,
 };
 use hyfetch::distros::Distro;
-use hyfetch::models::Config;
+use hyfetch::models::{build_hex_color_profile, Config};
 #[cfg(feature = "macchina")]
 use hyfetch::neofetch_util::macchina_path;
 use hyfetch::neofetch_util::{self, add_pkg_path, fastfetch_path, get_distro_ascii, get_distro_name, literal_input, ColorAlignment, NEOFETCH_COLORS_AC, NEOFETCH_COLOR_PATTERNS, TEST_ASCII};
@@ -133,43 +134,52 @@ fn main() -> Result<()> {
     let backend = options.backend.unwrap_or(config.backend);
     let args = options.args.as_ref().or(config.args.as_ref());
 
-    fn parse_preset_string(preset_string: &str) -> Result<ColorProfile> {
+    fn parse_preset_string(preset_string: &str, config: &Config) -> Result<ColorProfile> {
         if preset_string.contains('#') {
-            let colors: Vec<&str> = preset_string.split(',').map(|s| s.trim()).collect();
-            for color in &colors {
-                if !color.starts_with('#') ||
-                    (color.len() != 4 && color.len() != 7) ||
-                    !color[1..].chars().all(|c| c.is_ascii_hexdigit()) {
-                    return Err(anyhow::anyhow!("invalid hex color: {}", color));
-                }
+            let colors: Vec<String> = preset_string
+                .split(',')
+                .map(|s| s.trim().to_owned())
+                .collect();
+            let color_profile = build_hex_color_profile(&colors)
+                .context("failed to create color profile from hex")?;
+            return Ok(color_profile);
+        }
+
+        let mut preset_profiles: HashMap<String, ColorProfile> = <Preset as VariantArray>::VARIANTS
+            .iter()
+            .map(|preset| (preset.as_ref().to_owned(), preset.color_profile()))
+            .collect();
+        preset_profiles.extend(config.custom_preset_profiles()?);
+
+        let presets: Vec<ColorProfile> = preset_profiles.values().cloned().collect();
+
+        if preset_string == "random" {
+            if presets.is_empty() {
+                return Err(anyhow::anyhow!("preset iterator should not be empty"));
             }
-            ColorProfile::from_hex_colors(colors)
-                .context("failed to create color profile from hex")
-        } else if preset_string == "random" {
             let mut rng = fastrand::Rng::new();
-            let preset = *rng
-                .choice(<Preset as VariantArray>::VARIANTS)
-                .expect("preset iterator should not be empty");
-            Ok(preset.color_profile())
+            let selected_index = rng.usize(0..presets.len());
+            return Ok(presets[selected_index].clone());
+        }
+
+        if let Some(color_profile) = preset_profiles.get(preset_string) {
+            Ok(color_profile.clone())
         } else {
-            use std::str::FromStr;
-            let preset = Preset::from_str(preset_string)
-                .with_context(|| {
-                    format!(
-                        "PRESET should be comma-separated hex colors or one of {{{presets}}}",
-                        presets = <Preset as VariantNames>::VARIANTS
-                            .iter()
-                            .chain(iter::once(&"random"))
-                            .join(",")
-                    )
-                })?;
-            Ok(preset.color_profile())
+            let presets = preset_profiles
+                .keys()
+                .map(String::as_str)
+                .chain(iter::once("random"))
+                .sorted()
+                .join(",");
+            Err(anyhow::anyhow!(
+                "PRESET should be comma-separated hex colors or one of {{{presets}}}"
+            ))
         }
     }
 
     // Get preset
     let preset_string = options.preset.as_deref().unwrap_or(&config.preset);
-    let color_profile = parse_preset_string(preset_string)?;
+    let color_profile = parse_preset_string(preset_string, &config)?;
     debug!(?color_profile, "color profile");
 
     // Lighten
@@ -1074,6 +1084,7 @@ fn create_config(
         distro: logo_chosen,
         pride_month_disable: false,
         custom_ascii_path,
+        custom_presets: None,
     };
     debug!(?config, "created config");
 
