@@ -1,6 +1,10 @@
+use std::collections::{HashMap};
+
+use anyhow::{Context as _, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::color_util::Lightness;
+use crate::color_profile::ColorProfile;
 use crate::neofetch_util::ColorAlignment;
 use crate::types::{AnsiMode, Backend, TerminalTheme};
 
@@ -19,7 +23,10 @@ pub struct Config {
     pub distro: Option<String>,
     pub pride_month_disable: bool,
     pub custom_ascii_path: Option<String>,
+    pub custom_presets: Option<HashMap<String, Vec<String>>>,
 }
+
+
 
 impl Config {
     pub fn default_lightness(theme: TerminalTheme) -> Lightness {
@@ -32,6 +39,32 @@ impl Config {
             },
         }
     }
+
+    pub fn custom_preset_profiles(&self) -> Result<HashMap<String, ColorProfile>> {
+        let mut profiles = HashMap::new();
+        if let Some(custom_presets) = &self.custom_presets {
+            for (preset_name, colors) in custom_presets {
+                let color_profile = build_hex_color_profile(colors).with_context(|| {
+                    format!("failed to validate custom preset key `{preset_name}`")
+                })?;
+                profiles.insert(preset_name.clone(), color_profile);
+            }
+        }
+        Ok(profiles)
+    }
+}
+
+pub fn build_hex_color_profile(hex_colors: &[String]) -> Result<ColorProfile> {
+    for color in hex_colors {
+        if !color.starts_with('#') ||
+            (color.len() != 4 && color.len() != 7) ||
+            !color[1..].chars().all(|c| c.is_ascii_hexdigit()) {
+            return Err(anyhow::anyhow!("invalid hex color: {color}"));
+        }
+    }
+
+    ColorProfile::from_hex_colors(hex_colors.to_vec())
+        .context("failed to create color profile from hex")
 }
 
 mod args_serde {

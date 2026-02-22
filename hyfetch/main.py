@@ -16,7 +16,7 @@ from .color_scale import Scale
 from .color_util import clear_screen
 from .constants import *
 from .font_logo import get_font_logo
-from .models import Config
+from .models import build_hex_color_profile, Config
 from .neofetch_util import *
 from .presets import PRESETS, ColorProfile
 
@@ -482,30 +482,41 @@ def run():
         config.backend = args.backend
     if args.args:
         config.args = args.args
-
-    # Random preset
-    if config.preset == 'random':
-        config.preset = random.choice(list(PRESETS.keys()))
-
     # Override global color mode
     GLOBAL_CFG.color_mode = config.mode
     GLOBAL_CFG.is_light = config.light_dark == 'light'
 
     # Get preset
-    preset = None
-    if config.preset in PRESETS:
-        preset = PRESETS.get(config.preset)
-    elif '#' in config.preset:
-        colors = [color.strip() for color in config.preset.split(',')]
+    def parse_preset_string(preset_string: str, config: Config) -> ColorProfile:
+        if '#' in preset_string:
+            colors = [s.strip() for s in preset_string.split(',')]
+            return build_hex_color_profile(colors)
+        
+        preset_profiles: dict[str, ColorProfile] = {
+            name: preset for name, preset in PRESETS.items()
+        }
+        preset_profiles.update(config.custom_preset_profiles())
 
-        for color in colors:
-            if not (color.startswith('#') and len(color) in [4, 7] and all(c in '0123456789abcdefABCDEF' for c in color[1:])):
-                print(f'Error: invalid hex color "{color}"')
-        preset = ColorProfile(colors)
-    else:
-        print(f'Preset should be a comma-separated list of hex colors, or one of the following: {", ".join(sorted(PRESETS.keys()))}')
+        presets = list(preset_profiles.values())
 
-    if preset is None:
+        if preset_string == 'random':
+            if not presets:
+                raise ValueError('preset iterator should not be empty')
+            return random.choice(presets)
+
+        if preset_string in preset_profiles:
+            return preset_profiles[preset_string]
+
+        available = sorted([*preset_profiles.keys(), 'random'])
+        raise ValueError(
+            "PRESET should be comma-separated hex colors or one of "
+            f"{{{','.join(available)}}}"
+    )
+
+    try:
+        preset = parse_preset_string(config.preset, config)
+    except ValueError as err:
+        print(f'Error: {err}')
         exit(1)
 
     # Lighten (args > config)
