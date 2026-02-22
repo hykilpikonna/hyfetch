@@ -26,6 +26,7 @@ classifiers = [
 dependencies = [
     # Universal dependencies
     'typing_extensions; python_version < "3.8"',
+    'prompt_toolkit>=3.0.36',
 
     # Windows dependencies
     'psutil ; platform_system=="Windows"',

@@ -15,7 +15,7 @@ ansi_colours = { workspace = true, features = [] }
 anstream = { workspace = true, features = [], optional = true }
 anyhow = { workspace = true, features = ["std"] }
 bpaf = { workspace = true, features = [] }
-crossterm = { workspace = true, features = [] }
+crossterm = { workspace = true, features = ["events"] }
 deranged = { workspace = true, features = ["serde", "std"] }
 directories = { workspace = true, features = [] }
 enterpolation = { workspace = true, features = ["bspline", "std"] }
