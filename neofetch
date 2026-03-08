@@ -2421,7 +2421,7 @@ get_packages() {
         ;;
 
         QNX)
-            has qpkg && tot qpkg list && ((packages-=4))
+            has qpkg && pkgs_h=4 tot qpkg list && ((packages-=4))
             has apk  && tot apk info
         ;;
     esac
