@@ -26,10 +26,11 @@ classifiers = [
 dependencies = [
     # Universal dependencies
     'typing_extensions; python_version < "3.8"',
-
     # Windows dependencies
     'psutil ; platform_system=="Windows"',
     'colorama>=0.4.6 ; platform_system=="Windows"',
+    "regex>=2024.4.16",
+    "hypy-utils>=1.0.29",
 ]
 
 [project.urls]

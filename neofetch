@@ -1528,6 +1528,7 @@ get_distro() {
         QNX)
             distro=$(cat /pps/services/deviceproperties | awk -F'::' '$1 == "device_os" { print $2 }')
             distro="${distro} ($(cat /base/etc/os.version))"
+        ;;
     esac
 
     distro=${distro//Enterprise Server}
@@ -1876,6 +1877,7 @@ get_model() {
 
         QNX)
             model=$(cat /pps/services/deviceproperties | awk -F'::' '/modelname/ {m=$2} /modelnumber/ {n=$2} END {print m" ("n")"}')
+        ;;
     esac
 
     # Remove dummy OEM info.
@@ -3810,13 +3812,13 @@ get_memory() {
             mem_free="$(( $(showmem -f) * 1000 ))"
             mem_used="$(( $(showmem -u) * 1000 ))"
             mem_total="$(( $(showmem -t) * 1000 ))"
-
         ;;
 
         "QNX")
-            mem_used="$(( $(pidin info | sed -n 's/.*FreeMem:\([0-9][0-9]*\)MB\/.*/\1/p') * 1024 ))"
+            mem_free="$(( $(pidin info | sed -n 's/.*FreeMem:\([0-9][0-9]*\)MB\/.*/\1/p') * 1024 ))"
             mem_total="$(( $(pidin info | sed -n 's|.*MB/||;s|MB Boot.*||p') * 1024 ))"
             mem_used="$((mem_total - mem_free))"
+        ;;
 
     esac
 
@@ -4662,8 +4664,6 @@ get_term() {
         "Hyper")                         term="HyperTerm"             ;;
         *)                               term="${TERM_PROGRAM/\.app}" ;;
     esac
-
-    [[ $os == QNX ]] && term="$(pidin session 2> /dev/null | awk 'NR==2 {n=split($NF, a, "/"); print a[n]}')"
 
     # Most likely TosWin2 on FreeMiNT - quick check
     [[ "$TERM" == "tw52" || "$TERM" == "tw100" ]] && term="TosWin2"
@@ -13448,7 +13448,7 @@ ${c1}:##############.      ${c2}:======:
 EOF
         ;;
 
-        "Blackberry 10"* | "QNX"*)
+        "QNX"* | "Blackberry 10"*)
             set_colors 1
             read -rd '' ascii_data <<'EOF'
 ${c1}    .KMMMMMbo     .KMMMMMbo

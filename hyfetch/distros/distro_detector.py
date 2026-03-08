@@ -1124,9 +1124,9 @@ def detect(name: str) -> AsciiArt | None:
         from .q4os import q4os
         return q4os
     
-    if name.startswith('blackberry 10') or name.startswith('qnx'):
-        from .blackberry_10 import blackberry_10
-        return blackberry_10
+    if name.startswith('qnx') or name.startswith('blackberry 10'):
+        from .qnx import qnx
+        return qnx
     
     if name.startswith('qubes'):
         from .qubes import qubes

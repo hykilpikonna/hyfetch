@@ -2,7 +2,7 @@
 
 from . import AsciiArt
 
-q4os = AsciiArt(match=r'''"Blackberry 10"* | "QNX"*''', color='1', ascii=r"""
+qnx = AsciiArt(match=r'''"QNX"* | "Blackberry 10"*''', color='1', ascii=r"""
 ${c1}    .KMMMMMbo     .KMMMMMbo
     aMMMMMMMMb    aMMMMMMMMb
    ,KMMMMMMMMp   ,KMMMMMMMMp
@@ -18,3 +18,4 @@ AMMMMMMMP*    AMMMMMMMP*    .KMMMMMbo
            ,KMMMMMMMMp
            AMMMMMMMP*
 """)
+    
