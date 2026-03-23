@@ -151,38 +151,6 @@ def create_config() -> Config:
         matched.sort()
         return [idx for _, _, idx in matched]
 
-    def print_flag_page(filtered_indices: list[int], page_num: int, text_filter: str, hint: str | None):
-        num_pages = max(1, ceil(len(filtered_indices) / flags_per_page))
-        clear_screen(title)
-        print_title_prompt("Let's choose a flag!")
-        printc('Available flag presets:')
-        print(f'Page: {page_num + 1} of {num_pages}')
-        print()
-
-        start = page_num * flags_per_page
-        end = min(start + flags_per_page, len(filtered_indices))
-
-        if start >= end:
-            print('No presets matched this filter.')
-            print()
-        else:
-            current = filtered_indices[start:end]
-            for i in range(0, len(current), flags_per_row):
-                row = [flag_entries[idx][1] for idx in current[i:i + flags_per_row]]
-                print_flag_row(row)
-            print()
-
-        tmp = PRESETS['rainbow'].set_light_dl_def(light_dark).color_text('preset')
-        print('Use arrow keys to go to the previous/next page. Type to filter and press Enter to select.')
-        printc(f'Which {tmp} do you want to use? (default: rainbow)')
-        print(f'> {text_filter}', end='', flush=True)
-        if hint:
-            print(f'\n{hint}', end='')
-
-    def print_flag_row(current: list[list[str]]):
-        [printc('  '.join(line)) for line in zip(*current)]
-        print()
-
     def select_preset_prompt_toolkit() -> str:
         from prompt_toolkit import PromptSession
         from prompt_toolkit.application.current import get_app
@@ -199,14 +167,12 @@ def create_config() -> Config:
             indices = filter_flag_indices(text)
             return max(1, ceil(len(indices) / flags_per_page))
 
-        @kb.add('left')
         @kb.add('up')
         def _prev_page(event):
             nonlocal page_num
             page_num = (page_num + current_num_pages() - 1) % current_num_pages()
             event.app.invalidate()
 
-        @kb.add('right')
         @kb.add('down')
         def _next_page(event):
             nonlocal page_num
@@ -239,8 +205,7 @@ def create_config() -> Config:
             visible_row_count = 0
             if start >= end:
                 lines.append("No presets matched this filter.")
-                lines.append("")
-                visible_row_count = 0
+                visible_row_count = 0.2
             else:
                 current = filtered_indices[start:end]
                 for i in range(0, len(current), flags_per_row):
@@ -251,10 +216,10 @@ def create_config() -> Config:
 
             # Keep prompt at a fixed vertical position by padding to a full page height.
             missing_rows = max(0, row_per_page - visible_row_count)
-            lines.extend([""] * (missing_rows * 5))
+            lines.extend([""] * round(missing_rows * 5))
 
             lines.append(
-                "Use arrow keys to go to the previous/next page. Type to filter and press Enter to select."
+                "Use the up/down arrow keys to go to the previous/next page. Type to filter and press Enter to select."
             )
             lines.append(f"Which {prompt_header} do you want to use? (default: rainbow)")
             return lines

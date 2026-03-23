@@ -46,7 +46,7 @@ use tracing::debug;
 
 fn main() -> Result<()> {
     add_pkg_path().expect("failed to add pkg path");
-    
+
     #[cfg(windows)]
     if let Err(err) = enable_ansi_support::enable_ansi_support() {
         debug!(%err, "could not enable ANSI escape code support");
@@ -590,7 +590,7 @@ fn create_config(
         let end = (start + flags_per_page).min(filtered_indices.len());
         let mut visible_rows: usize = 0;
         if start >= end {
-            println!("No presets matched this filter.\n");
+            println!("No presets matched this filter.");
         } else {
             for row in filtered_indices[start..end].chunks(usize::from(flags_per_row)) {
                 let row = row
@@ -610,7 +610,7 @@ fn create_config(
         }
 
         println!(
-            "Use arrow keys to go to the previous/next page. Type to filter and press Enter to select."
+            "Use the up/down arrow keys to go to the previous/next page. Type to filter and press Enter to select."
         );
         printc(
             format!(
@@ -670,10 +670,10 @@ fn create_config(
                 preset = selection.unwrap_or(Preset::Rainbow);
                     break;
             },
-            KeyCode::Left | KeyCode::Up => {
-            page = (page + num_pages - 1) % num_pages;
+            KeyCode::Up => {
+                page = (page + num_pages - 1) % num_pages;
             },
-            KeyCode::Right | KeyCode::Down => {
+            KeyCode::Down => {
                 page = (page + 1) % num_pages;
             },
             KeyCode::Backspace => {
@@ -887,26 +887,26 @@ fn create_config(
     } else {
         detected_dst.unwrap()
     };
-    
+
     let running_dst_sml = if Distro::detect(&detected_dst_small_fmt).is_some() {
         detected_dst_small_fmt
     } else {
         "".to_string()
     };
 
-    
+
     // load ascii
     let small_asc = get_distro_ascii(Some(&running_dst_sml), backend).context("failed to get distro ascii")?;
     let small_asc = small_asc.to_normalized().context("failed to normalize ascii")?;
-    
+
     let mut asc = asc;
-    let mut logo_chosen: Option<String> = distro.cloned(); 
-    
-    if small_asc.lines != asc.lines && running_dst_sml != "" { 
+    let mut logo_chosen: Option<String> = distro.cloned();
+
+    if small_asc.lines != asc.lines && running_dst_sml != "" {
         let ds_arrangements = [
             ("Default", asc.clone()),
             ("Small", small_asc.clone())
-        ];   
+        ];
 
         let arrangements: IndexMap<Cow<str>, NormalizedAsciiArt> =
             ds_arrangements.map(|(k, a)| (k.into(), a)).into();
@@ -943,15 +943,15 @@ fn create_config(
 
             // prints small logo w/ big logo
             for row in &asciis.into_iter().chunks(usize::from(ascii_per_row)) {
-                
+
                 let row: Vec<Vec<String>> = row.collect();
-                
+
                 for i in 0..usize::from(asc.h).checked_add(1).unwrap() {
                     let mut line = Vec::new();
                     for lines in &row {
                             line.push(&*lines[i]);
                     }
-                    printc(line.join("                 "), color_mode).context("failed to print ascii line")?; 
+                    printc(line.join("                 "), color_mode).context("failed to print ascii line")?;
                 }
 
                 println!();
@@ -962,7 +962,7 @@ fn create_config(
             let choice = literal_input("Your choice?", &opts[..], "default", true, color_mode)
                 .context("failed to ask for choice input")
                 .context("failed to select logo type").context("failed to ask for choice input")?;
-            
+
             if choice.to_lowercase() == "small" {
                 logo_chosen = Some(running_dst_sml);
                 asc = small_asc;
@@ -1091,7 +1091,7 @@ fn create_config(
         // Save choice
         color_align = if choice == "horizontal" { ColorAlignment::Horizontal }
         else if choice == "vertical" { ColorAlignment::Vertical }
-        else { 
+        else {
             arrangements.into_iter()
                 .find_map(|(k, ca)| {
                     if k.to_lowercase() == choice {
