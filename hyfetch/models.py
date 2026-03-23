@@ -10,6 +10,9 @@ from .types import AnsiMode, LightDark, BackendLiteral
 
 
 def build_hex_color_profile(hex_colors: list[str]) -> ColorProfile:
+    if not hex_colors:
+        raise ValueError('hex color list cannot be empty')
+
     for color in hex_colors:
         if not (
             color.startswith('#')
@@ -48,6 +51,8 @@ class Config:
         profiles: dict[str, ColorProfile] = {}
         if self.custom_presets:
             for preset_name, colors in self.custom_presets.items():
+                if preset_name == 'random':
+                    raise ValueError('custom preset key "random" is reserved')
                 try:
                     profiles[preset_name] = build_hex_color_profile(colors)
                 except ValueError as err:

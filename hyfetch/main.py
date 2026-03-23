@@ -491,7 +491,7 @@ def run():
         if '#' in preset_string:
             colors = [s.strip() for s in preset_string.split(',')]
             return build_hex_color_profile(colors)
-        
+
         preset_profiles: dict[str, ColorProfile] = {
             name: preset for name, preset in PRESETS.items()
         }
@@ -511,7 +511,7 @@ def run():
         raise ValueError(
             "PRESET should be comma-separated hex colors or one of "
             f"{{{','.join(available)}}}"
-    )
+        )
 
     try:
         preset = parse_preset_string(config.preset, config)

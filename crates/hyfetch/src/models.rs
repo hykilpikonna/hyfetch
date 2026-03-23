@@ -1,10 +1,10 @@
-use std::collections::{HashMap};
+use std::collections::HashMap;
 
 use anyhow::{Context as _, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::color_util::Lightness;
 use crate::color_profile::ColorProfile;
+use crate::color_util::Lightness;
 use crate::neofetch_util::ColorAlignment;
 use crate::types::{AnsiMode, Backend, TerminalTheme};
 
@@ -26,8 +26,6 @@ pub struct Config {
     pub custom_presets: Option<HashMap<String, Vec<String>>>,
 }
 
-
-
 impl Config {
     pub fn default_lightness(theme: TerminalTheme) -> Lightness {
         match theme {
@@ -44,6 +42,9 @@ impl Config {
         let mut profiles = HashMap::new();
         if let Some(custom_presets) = &self.custom_presets {
             for (preset_name, colors) in custom_presets {
+                if preset_name == "random" {
+                    return Err(anyhow::anyhow!("custom preset key `random` is reserved"));
+                }
                 let color_profile = build_hex_color_profile(colors).with_context(|| {
                     format!("failed to validate custom preset key `{preset_name}`")
                 })?;
@@ -55,10 +56,15 @@ impl Config {
 }
 
 pub fn build_hex_color_profile(hex_colors: &[String]) -> Result<ColorProfile> {
+    if hex_colors.is_empty() {
+        return Err(anyhow::anyhow!("hex color list cannot be empty"));
+    }
+
     for color in hex_colors {
-        if !color.starts_with('#') ||
-            (color.len() != 4 && color.len() != 7) ||
-            !color[1..].chars().all(|c| c.is_ascii_hexdigit()) {
+        if !color.starts_with('#')
+            || (color.len() != 4 && color.len() != 7)
+            || !color[1..].chars().all(|c| c.is_ascii_hexdigit())
+        {
             return Err(anyhow::anyhow!("invalid hex color: {color}"));
         }
     }
