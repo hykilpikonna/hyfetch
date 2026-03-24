@@ -232,6 +232,10 @@
   "burger": ["#F3A26A", "#498701", "#FD1C13", "#7D3829", "#F3A26A"],
   "throatlozenges": ["#2759DA", "#03940D", "#F5F100", "#F59B00", "#B71212"],
   "band": ["#2670C0", "#F5BD00", "#DC0045", "#E0608E"],
-
+  "petergriffin": {
+    "colors": ["#783717","#fbb8a8","#ffffff","#29622f","#462611"],
+    "weights": [1,3,3,3,1],
+    "comment": "Colorpicked from https://i.redd.it/q4ct89bthird1.png"
+  },
   "rubber" : ["#000000", "#FE0002", "#FFFF01", "#FE0002", "#000000", "#FE0002", "#000000"]
 }
