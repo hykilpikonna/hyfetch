@@ -53,15 +53,24 @@ fn main() -> Result<()> {
         &dir.join("../../hyfetch/data"),
     ]).context("couldn't find hyfetch/data")?;
     
-    let dst_data = o.join("hyfetch/data");
-    fs::create_dir_all(&dst_data)?;
+    let dst_root = o.join("hyfetch");
+    fs::create_dir_all(&dst_root)?;
     
     // Copy hyfetch/data
     let opt = CopyOptions { overwrite: true, copy_inside: true, ..CopyOptions::default() };
-    fs_extra::dir::copy(&data_dir, &dst_data, &opt)?;
+    fs_extra::dir::copy(&data_dir, &dst_root, &opt)?;
+
+    // Copy neofetch
+    let neofetch_src = anything_that_exist(&[
+        &dir.join("neofetch"),
+        &dir.join("../../neofetch"),
+    ]).context("couldn't find neofetch")?;
+    fs::copy(&neofetch_src, o.join("neofetch"))?;
 
     preset_codegen(&o.join("hyfetch/data/presets.json"), &o.join("presets.rs"))?;
-    export_distros(&data_dir.join("distros"), &o)?;
+    
+    let distros_dir = data_dir.join("distros");
+    export_distros(&distros_dir, &o)?;
     Ok(())
 }
 
