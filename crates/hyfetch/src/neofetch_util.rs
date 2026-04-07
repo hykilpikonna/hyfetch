@@ -509,7 +509,7 @@ pub fn get_distro_name(backend: Backend) -> Result<String> {
                     doc["spacing"] = value(0);
                     doc["padding"] = value(0);
                     // See https://github.com/Macchina-CLI/macchina/issues/319
-                    // doc["hide_ascii"] = value(true);
+                    doc["hide_ascii"] = value(false);
                     doc["separator"] = value("");
                     doc["custom_ascii"] = Item::Table(Table::from_iter([(
                         "path",
@@ -540,8 +540,11 @@ pub fn get_distro_name(backend: Backend) -> Result<String> {
             ];
             run_macchina_command_piped(&args[..])
                 .map(|s| {
-                    anstream::adapter::strip_str(&s)
-                        .to_string()
+                    let s = anstream::adapter::strip_str(&s).to_string();
+                    let s = s.trim();
+                    s.splitn(2, '-')
+                        .last()
+                        .expect("splitn with 2 should always have at least 1 element")
                         .trim()
                         .to_owned()
                 })
@@ -661,6 +664,7 @@ fn run_macchina(asc: String, args: Option<&Vec<String>>) -> Result<()> {
             .context("failed to create temp file for macchina theme")?;
         let theme_doc = {
             let mut doc = DocumentMut::new();
+            doc["hide_ascii"] = value(false);
             doc["custom_ascii"] = Item::Table(Table::from_iter([(
                 "path",
                 &*asc_file_path.to_string_lossy(),
