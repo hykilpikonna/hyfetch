@@ -135,24 +135,26 @@ cargo install --git https://github.com/hykilpikonna/hyfetch
 
 **✨ Features & Enhancements**
 
-* **Distro as Data**: Migrated distribution ASCII art and metadata to a unified JSON-header format, enabling shared usage across Python and Rust implementations.
-* **Distro Parity**: Added missing ASCII art and distros from [fastfetch](https://github.com/fastfetch-cli/fastfetch).
-* **New OS Support**: Added support for QNX/Blackberry 10 ([#480](https://github.com/hykilpikonna/hyfetch/issues/480)).
-* **Custom Presets**: Added `custom_presets` configuration option to allow user-defined color presets ([#481](https://github.com/hykilpikonna/hyfetch/issues/481)).
-* **Interactive Filtering**: Added live filter for preset selection in the configuration menu ([#482](https://github.com/hykilpikonna/hyfetch/issues/482)).
-* **New Distros**: Added support for Codex Linux ([#477](https://github.com/hykilpikonna/hyfetch/issues/477)) and Zirconium ([#468](https://github.com/hykilpikonna/hyfetch/issues/468)).
-* **New Flags**: Added Peter Griffin pride flag ([#489](https://github.com/hykilpikonna/hyfetch/issues/489)), Rubber flag ([#479](https://github.com/hykilpikonna/hyfetch/issues/479)), and Haruhi Suzumiya flag ([#486](https://github.com/hykilpikonna/hyfetch/issues/486)).
+* Random Preset: Now can select multiple presets and let it randomly choose one on each run ([#487](https://github.com/hykilpikonna/hyfetch/issues/487)).
+* Distro as Data: Migrated distribution ASCII art and metadata to a unified JSON-header format, enabling shared usage across Python and Rust implementations.
+* Distro Parity: Added missing ASCII art and distros from [fastfetch](https://github.com/fastfetch-cli/fastfetch).
+* New OS Support: Added support for QNX/Blackberry 10 ([#480](https://github.com/hykilpikonna/hyfetch/issues/480)).
+* Custom Presets: Added `custom_presets` configuration option to allow user-defined color presets ([#481](https://github.com/hykilpikonna/hyfetch/issues/481)).
+* Interactive Filtering: Added live filter for preset selection in the configuration menu ([#482](https://github.com/hykilpikonna/hyfetch/issues/482)).
+* New Distros: Added support for Codex Linux ([#477](https://github.com/hykilpikonna/hyfetch/issues/477)) and Zirconium ([#468](https://github.com/hykilpikonna/hyfetch/issues/468)).
+* New Flags: Added Peter Griffin pride flag ([#489](https://github.com/hykilpikonna/hyfetch/issues/489)), Rubber flag ([#479](https://github.com/hykilpikonna/hyfetch/issues/479)), and Haruhi Suzumiya flag ([#486](https://github.com/hykilpikonna/hyfetch/issues/486)).
 
 **🐛 Bug Fixes**
 
-* **Windows/MSYS2**: Fixed bash path detection and execution in MINGW64 environment ([#488](https://github.com/hykilpikonna/hyfetch/issues/488)).
-* **Backend Fixes**: Fixed issues with the `macchina` backend crashing or reporting incorrect distribution ([#491](https://github.com/hykilpikonna/hyfetch/issues/491)).
-* **Terminal Fixes**: Fixed terminal font output issues in Kitty terminal ([#484](https://github.com/hykilpikonna/hyfetch/issues/484)).
-* **Reliability**:
+* Windows/MSYS2: Fixed bash path detection and execution in MINGW64 environment ([#488](https://github.com/hykilpikonna/hyfetch/issues/488)).
+* Backend Fixes: Fixed issues with the `macchina` backend crashing or reporting incorrect distribution ([#491](https://github.com/hykilpikonna/hyfetch/issues/491)).
+* Terminal Fixes: Fixed terminal font output issues in Kitty terminal ([#484](https://github.com/hykilpikonna/hyfetch/issues/484)).
+* Reliability:
     * Improved path detection to continue even when current path is not found ([#426](https://github.com/hykilpikonna/hyfetch/issues/426)).
     * Added fallback for operating systems unsupported by the Rust implementation ([#474](https://github.com/hykilpikonna/hyfetch/issues/474)).
     * Fixed prioritization of CLI-specified ASCII art to ensure it correctly overrides configuration ([#475](https://github.com/hykilpikonna/hyfetch/issues/475)).
-* **Shell Detection**: Switched to `os.execv` for more reliable shell detection and transition ([#469](https://github.com/hykilpikonna/hyfetch/issues/469)).
+* Shell Detection: Switched to `os.execv` for more reliable shell detection and transition ([#469](https://github.com/hykilpikonna/hyfetch/issues/469)).
+* Background Detection Timeout: Prevent crash due to timeout in background color detection ([#453](https://github.com/hykilpikonna/hyfetch/issues/453)).
 
 
 ### 2.0.5
