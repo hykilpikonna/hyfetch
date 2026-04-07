@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-FASTFETCH_VERSION="2.32.1"
+FASTFETCH_VERSION="2.61.0"
 FASTFETCH_DL="https://github.com/fastfetch-cli/fastfetch/releases/download/$FASTFETCH_VERSION/"
 
 # Get script directory
