@@ -1,4 +1,4 @@
-{"match": "*\"wii-linux-ngx\"*|*\"whiite-linux\"*|         *\"gc-linux\"*", "color": "6 7"}
+{"match": "\"WiiLinuxNgx\"* | \"WiiLinux\"* | \"Wii-Linux\"* | \"Wii Linux\"* | \"wii-linux-ngx\"* | \"whiite-linux\"* | \"gc-linux\"*", "color": "6 7"}
 ${c1}'''''''            `~;:`            -''''''   ~kQ@@g\      ,EQ@@g/
 h@@@@@@'          o@@@@@9`         `@@@@@@D  `@@@@@@@=     @@@@@@@?
 '@@@@@@X         o@@@@@@@D         v@@@@@@:   R@@@@@@,     D@@@@@@_

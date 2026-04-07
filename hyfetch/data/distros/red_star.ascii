@@ -1,4 +1,4 @@
-{"match": "\"Red Star\"* | \"Redstar\"*", "color": "1 7 3"}
+{"match": "\"Red Star\"* | \"Redstar\"* | \"redstar-os\"* | \"redstaros\"*", "color": "1 7 3"}
 ${c1}                    ..
                   .oK0l
                  :0KKKKd.

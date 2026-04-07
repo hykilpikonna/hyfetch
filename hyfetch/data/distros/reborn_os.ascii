@@ -1,4 +1,4 @@
-{"match": "\"Reborn OS\"* | \"Reborn\"*", "color": "0 4 6", "foreground": [1]}
+{"match": "\"Reborn OS\"* | \"Reborn\"* | \"RebornOS\"* | \"rebornos\"* | \"reborn-os\"*", "color": "0 4 6", "foreground": [1]}
 ${c1}          .======================.
          ${c1}.#${c2}#*********${c1}%%${c2}*********#${c1}%:
         ${c1}:%${c2}#**********${c1}%%${c2}**********#${c1}%-
