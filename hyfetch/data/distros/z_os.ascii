@@ -1,0 +1,8 @@
+{"match": "\"z/OS\"*|\"zos\"*", "color": "4"}
+             //  OOOOOOO  SSSSSSS
+            //  OO    OO SS
+    zzzzzz //  OO    OO SS
+      zz  //  OO    OO   SSSS
+    zz   //  OO    OO       SS
+  zz    //  OO    OO       SS
+zzzzzz //   OOOOOOO  SSSSSSS

@@ -1,0 +1,7 @@
+{"match": "\"T2_small\"*|\"T2 SDE_small\"*|\"T2/Linux_small\"*", "color": "7 4"}
+${c2}TTTTTTTTTT
+    tt   ${c1}222${c2}
+    tt  ${c1}2   2${c2}
+    tt     ${c1}2${c2}
+    tt    ${c1}2${c2}
+    tt  ${c1}22222${c2}

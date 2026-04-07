@@ -1,0 +1,13 @@
+{"match": "\"UBLinux_small\"*", "color": "38;5;38 7 8"}
+${c1}       UUUU
+${c1}    UUUUUUUUUU
+${c1} ${c2}BBB${c1}UUUU${c2}BBBBBB${c1}UU${c3}#
+${c1}U${c2}BBB${c1}UUUU${c2}BBB${c1}UUU${c2}B${c1}UU${c3}#
+${c1}U${c2}BBB${c1}UUUU${c2}BBB${c1}UUU${c2}B${c1}UU${c3}#
+${c1}U${c2}BBB${c1}UUUU${c2}BBBBBB${c1}UUU${c3}#
+${c1}U${c2}BBB${c1}UUUU${c2}BBB${c1}UUU${c2}BB${c1}U${c3}#
+${c1}UU${c2}BBB${c1}UUU${c2}BBB${c1}UUU${c2}BB${c1}U${c3}#
+${c1} UU${c2}BBBBBBBBBBB${c1}UU${c3}#
+${c1}    UUUUUUUUU${c3}#
+${c1}       UUU${c3}#
+

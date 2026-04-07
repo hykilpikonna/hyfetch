@@ -1,0 +1,15 @@
+{"match": "\"QNX\"* | \"Blackberry 10\"*", "color": "1"}
+${c1}    .KMMMMMbo     .KMMMMMbo
+    aMMMMMMMMb    aMMMMMMMMb
+   ,KMMMMMMMMp   ,KMMMMMMMMp
+   AMMMMMMMP*    AMMMMMMMP*   ,KMMMMMbo
+                              aMMMMMMMMb
+ .KMMMMMbo     .KMMMMMbo     .KMMMMMMMMp
+ aMMMMMMMMb    aMMMMMMMMb    AMMMMMMMP*
+,KMMMMMMMMp   .KMMMMMMMMp
+AMMMMMMMP*    AMMMMMMMP*    .KMMMMMbo
+                            aMMMMMMMMb
+            .KMMMMMbo      ,KMMMMMMMMp
+            aMMMMMMMMb     AMMMMMMMP*
+           ,KMMMMMMMMp
+           AMMMMMMMP*

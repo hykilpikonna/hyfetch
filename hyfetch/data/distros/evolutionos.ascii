@@ -1,0 +1,19 @@
+{"match": "\"EvolutionOS\"*", "color": "4 7"}
+${c1}\e[1;32m      dddddddddddddddddddddddd
+  .dddd''''''''''''''''''''''dddd.
+  dd:   dddddddddddddddddddd;   dd:
+  dd:   ldl:''''''''''''''''    dd:
+  dd:   ldl:                    dd:
+  dd:   ldl:                    dd:
+  dd:   ldl:                    dd:
+  dd:   ldl:                    dd:
+  dd:   ldl: ddddddd;  ddddd;   dd:
+  dd:   ldl: '''''''   '''''    dd:
+  dd:   ldl:                    dd:
+  dd:   ldl:                    dd:
+  dd:   ldl:                    dd:
+  dd:   ldl:                    dd:
+  dd:   ldl: ddddddddddddddd;   dd:
+  dddd:.'''  '''''''''''''''  dddd:
+     dddddddddddddddddddddddddd;;'
+      '''''''''''''''''''''''''\e[0m

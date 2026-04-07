@@ -1,0 +1,18 @@
+{"match": "\"Fedora Silverblue\" | \"Silverblue\"*", "color": "4 7 12", "foreground": [2]}
+${c1}    .;ooooooooooooooooooooooooooo.
+${c1}  ,dddddddddddddddddddddddddddddd'${c3};
+${c1} lddddddddddddddddddddddddddddd'${c3};;;
+${c1}ddddd${c2},XXX.${c1}ddddd${c2},XXX.${c1}dddd'${c2},XXX.${c3};;;;;
+${c1}ddddd${c2}XX${c1}x${c2}XX${c1}ddddd${c2}XX${c1}x${c2}XX${c1}ddd'${c2},XX${c3}x${c2}XX${c3};;;;;
+${c1}ddddd${c2}'XXX'${c1}ddddd${c2}'XXX'${c1}dd'${c2}XXXXXX'${c3};;;;;
+${c1}dddddd${c2};X;${c1}ddddddd${c2};X:${c1}d'${c2}XXX${c3};;;;;;;;;;;
+${c1}dddddd${c2};X;${c1}ddddddd${c2};X:${c2}XXX${c3};;;;;;;;;;;;;
+${c1}dddddd${c2};X;${c1}dddddd'${c2};XXX,,,,,,XXX.${c3};;;;;
+${c1}dddddd${c2};X;${c1}dddd'${c2}XXXX${c2}XXXXXXXXX${c3}x${c2}XX${c3};;;;;
+${c1}dddddd${c2};X;${c1}dd'${c2}XXX${c3};;;;;;;;;;;${c2}XXX${c3};;;;;;
+${c1}dddddd${c2};X;${c1}'${c2}XXX${c3};;;;;;;;;;;;;;;;;;;;;;
+${c1}dddddd${c2};XXXXX,,,,,,,,,,,,,;XXX:${c3};;;;;
+${c1}dddddd${c2}:XXXXXXXXXXXXXXXXXXXX${c3}x${c2}XX${c3};;;;;
+${c1}ddddd'${c3};;;;;;;;;;;;;;;;;;;${c2}'XXX'${c3};;;;'
+${c1}ddd'${c3};;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+${c1}o'${c3};;;;;;;;;;;;;;;;;;;;;;;;;;;;'

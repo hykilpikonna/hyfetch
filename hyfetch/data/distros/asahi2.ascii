@@ -1,0 +1,19 @@
+{"match": "\"asahi2\"*|\"asahi-linux2\"*", "color": "3 6 1 1 7 8 6"}
+                 ${c1}_wwM ${c2}_ww
+                  ${c1}MMM${c2}MMMM
+                   ${c1}MM
+           ${c3}_ww##############yy_
+          ${c4}wMMMMM${c3}###########${c4}MMMMm
+        ${c4},MMMMMMMMM${c3}######${c4}MMMMMMMM0_
+       ${c4}wMMMMMMMMMMMMM${c5}MM${c6}0MMMMMMMMMMm
+     ${c4},MMMMMMMMMMMMMMM${c5}MMMM${c6}0MMMMMMMMM0,
+    ${c4}wMMMMMMMMMMMMMMMM${c5}MMMMM0${c6}MMMMMMMMMMb
+  ${c4}_MMMMMMMMMMMMMMMMMM${c5}MMMMMMM0${c6}MMMMMMMMM0,
+ ${c4}_MMMMMMMMMMMMMMMMMMM${c5}MMMM${c7}M${c5}MMMW${c6}MMMMMMMMMM_
+${c4}_MMMMMMMMMMMMMMMMMMMM${c5}MMMM${c7}M0${c5}MMMW${c6}MMMMMMMMMM_
+   ${c4}~MMMMMMMMMMMMMMMMM${c5}MMMM${c7}M${c5}MMMW${c6}MMMMM00~
+       ${c4}~MMMMMMMMMMMMM${c5}MMMWMMM${c6}0MM${c5}MMM${c6}~
+          ${c4}~MMMMMMMMMM${c5}MMMMM${c6}0MMM~~
+              ${c4}~MMMMMM${c5}MMM${c6}0MM~
+                  ${c4}~MM${c5}M${c6}@~
+                    ${c4}M

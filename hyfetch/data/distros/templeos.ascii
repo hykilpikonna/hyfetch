@@ -1,0 +1,21 @@
+{"match": "\"TempleOS\"*", "color": "3 1 6"}
+           ${c1}aooooo${c2},
+           ${c1}aooooo${c2}``
+           ${c1}aooooo${c2}``
+    ${c3}(((((( ${c1}aooooo${c2}``${c3}((((((
+ ${c1}oooo${c3}@@ @C@*;,./k@@ @@ @${c1}oooo${c2}
+ ${c1}oooooo${c3}@@ @@@@@@@@ @@k${c1}oooooo${c2}``
+ ${c1}oooooooo${c3}\@ @/@@ @@${c1}ooooooooo${c2}``
+  `````````${c3}'*@*/'${c2}````````````
+    ${c3}@@@(   ${c1}aooooo${c2}`` ${c3}@@@@
+    @@ @   ${c1}aooooo${c2}`` ${c3}@ @@
+     @@@   ${c1}aooooo${c2}`` ${c3}@@@,
+     @@    ${c1}aooooo${c2}`` ${c3} @@
+      @    ${c1}aooooo${c2}`` ${c3} (@
+           ${c1}aooooo${c2}``
+           ${c1}aooooo${c2}``
+           ${c1}aooooo${c2}``
+           ${c1}aooooo${c2}``
+           ${c1}aooooo${c2}``
+            ```````
+              `````
