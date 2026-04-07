@@ -10,7 +10,7 @@ from pathlib import Path
 
 from packaging import version as pv
 
-from tools.list_distros import generate_help, export_distros
+from tools.list_distros import generate_help
 from tools.reformat_readme import reformat_readme
 
 NEOFETCH_NEW_VERSION = ""
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     pre_check()
-    export_distros()
+    # export_distros() # Removed: not needed anymore for python distro generation
     edit_versions(args.version)
     finalize_neofetch()
     post_check()
