@@ -141,7 +141,7 @@ cargo install --git https://github.com/hykilpikonna/hyfetch
 * **Custom Presets**: Added `custom_presets` configuration option to allow user-defined color presets ([#481](https://github.com/hykilpikonna/hyfetch/issues/481)).
 * **Interactive Filtering**: Added live filter for preset selection in the configuration menu ([#482](https://github.com/hykilpikonna/hyfetch/issues/482)).
 * **New Distros**: Added support for Codex Linux ([#477](https://github.com/hykilpikonna/hyfetch/issues/477)) and Zirconium ([#468](https://github.com/hykilpikonna/hyfetch/issues/468)).
-* **New Flags**: Added Peter Griffin pride flag ([#489](https://github.com/hykilpikonna/hyfetch/issues/489)) and Rubber flag ([#479](https://github.com/hykilpikonna/hyfetch/issues/479)).
+* **New Flags**: Added Peter Griffin pride flag ([#489](https://github.com/hykilpikonna/hyfetch/issues/489)), Rubber flag ([#479](https://github.com/hykilpikonna/hyfetch/issues/479)), and Haruhi Suzumiya flag ([#486](https://github.com/hykilpikonna/hyfetch/issues/486)).
 
 **🐛 Bug Fixes**
 
