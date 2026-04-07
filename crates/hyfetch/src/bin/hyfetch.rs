@@ -24,7 +24,7 @@ use hyfetch::color_util::{
     NeofetchAsciiIndexedColor, PresetIndexedColor, Theme as _, ToAnsiString as _,
 };
 use hyfetch::distros::Distro;
-use hyfetch::models::{build_hex_color_profile, Config};
+use hyfetch::models::{build_hex_color_profile, Config, PresetValue};
 #[cfg(feature = "macchina")]
 use hyfetch::neofetch_util::macchina_path;
 use hyfetch::neofetch_util::{self, add_pkg_path, fastfetch_path, get_distro_ascii, get_distro_name, literal_input, ColorAlignment, NEOFETCH_COLORS_AC, NEOFETCH_COLOR_PATTERNS, TEST_ASCII};
@@ -153,9 +153,15 @@ fn main() -> Result<()> {
             .collect();
         preset_profiles.extend(config.custom_preset_profiles()?);
 
-        let presets: Vec<ColorProfile> = preset_profiles.values().cloned().collect();
+        if preset_string.contains(',') {
+            let presets: Vec<&str> = preset_string.split(',').map(|s| s.trim()).collect();
+            let mut rng = fastrand::Rng::new();
+            let selected_index = rng.usize(0..presets.len());
+            return parse_preset_string(presets[selected_index], config);
+        }
 
         if preset_string == "random" {
+            let presets: Vec<ColorProfile> = preset_profiles.values().cloned().collect();
             if presets.is_empty() {
                 return Err(anyhow::anyhow!("preset iterator should not be empty"));
             }
@@ -180,8 +186,11 @@ fn main() -> Result<()> {
     }
 
     // Get preset
-    let preset_string = options.preset.as_deref().unwrap_or(&config.preset);
-    let color_profile = parse_preset_string(preset_string, &config)?;
+    let preset_string = options
+        .preset
+        .clone()
+        .unwrap_or_else(|| config.preset.get_random_if_multiple());
+    let color_profile = parse_preset_string(&preset_string, &config)?;
     debug!(?color_profile, "color profile");
 
     // Lighten
@@ -1218,7 +1227,7 @@ fn create_config(
     // Create config
     clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
     let config = Config {
-        preset: preset.as_ref().to_string(),
+        preset: PresetValue::from(preset.as_ref().to_string()),
         mode: color_mode,
         light_dark: Some(theme),
         auto_detect_light_dark: Some(det_bg.is_some()),

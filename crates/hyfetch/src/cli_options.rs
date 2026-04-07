@@ -55,7 +55,7 @@ pub fn options() -> OptionParser<Options> {
     let preset = long("preset")
         .short('p')
         .help(&*format!(
-            "Use preset or comma-separated color list or comma-separated hex colors (e.g., \"#ff0000,#00ff00,#0000ff\")
+            "Use preset or comma-separated color list or comma-separated hex colors (e.g., \"#ff0000,#00ff00,#0000ff\"). Comma-separated preset names will pick one randomly.
 PRESET={{{presets}}}",
             presets = <Preset as VariantNames>::VARIANTS
                 .iter()

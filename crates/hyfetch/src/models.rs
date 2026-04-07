@@ -10,7 +10,7 @@ use crate::types::{AnsiMode, Backend, TerminalTheme};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
-    pub preset: String,
+    pub preset: PresetValue,
     pub mode: AnsiMode,
     pub auto_detect_light_dark: Option<bool>,
     pub light_dark: Option<TerminalTheme>,
@@ -154,5 +154,35 @@ mod args_serde {
         }
 
         deserializer.deserialize_option(OptionVisitor)
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum PresetValue {
+    Single(String),
+    Multiple(Vec<String>),
+}
+
+impl From<String> for PresetValue {
+    fn from(s: String) -> Self {
+        PresetValue::Single(s)
+    }
+}
+
+impl PresetValue {
+    pub fn get_random_if_multiple(&self) -> String {
+        match self {
+            PresetValue::Single(s) => s.clone(),
+            PresetValue::Multiple(v) => {
+                if v.is_empty() {
+                    "random".to_owned()
+                } else {
+                    let mut rng = fastrand::Rng::new();
+                    let selected_index = rng.usize(0..v.len());
+                    v[selected_index].clone()
+                }
+            }
+        }
     }
 }
