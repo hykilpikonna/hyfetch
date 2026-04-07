@@ -409,24 +409,12 @@ def get_fore_back(distro: str | None = None) -> tuple[int, int] | None:
         distro = GLOBAL_CFG.override_distro
     if not distro:
         distro = get_distro_name().lower()
-    distro = distro.lower().replace(' ', '-')
-    for k, v in fore_back.items():
-        if distro.startswith(k.lower()):
-            return v
+    
+    det = distro_detector.detect(distro)
+    if det and hasattr(det, 'foreground') and det.foreground:
+        f = det.foreground[0]
+        b = getattr(det, 'background', None)
+        return f, b
+        
     return None
-
-
-# Foreground-background recommendation
-fore_back = {
-    'fedora': (2, 1),
-    'kubuntu': (2, 1),
-    'lubuntu': (2, 1),
-    'xubuntu': (2, 1),
-    'ubuntu-cinnamon': (2, 1),
-    'ubuntu-kylin': (2, 1),
-    'ubuntu-mate': (2, 1),
-    'ubuntu-studio': (2, 1),
-    'ubuntu-sway': (2, 1),
-    'ultramarine': (2, 1),
-}
 
