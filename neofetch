@@ -1526,7 +1526,7 @@ get_distro() {
         ;;
 
         QNX)
-            distro=$(cat /pps/services/deviceproperties | awk -F'::' '$1 == "device_os" { print $2 }')
+            distro=$(awk -F'::' '$1 == "device_os" { print $2 }' /pps/services/deviceproperties)
             distro="${distro} ($(cat /base/etc/os.version))"
         ;;
     esac
@@ -1876,7 +1876,7 @@ get_model() {
         ;;
 
         QNX)
-            model=$(cat /pps/services/deviceproperties | awk -F'::' '/modelname/ {m=$2} /modelnumber/ {n=$2} END {print m" ("n")"}')
+            model=$(awk -F'::' '/modelname/ {m=$2} /modelnumber/ {n=$2} END {print m" ("n")"}' /pps/services/deviceproperties)
         ;;
     esac
 
@@ -4253,7 +4253,7 @@ get_resolution() {
         ;;
 
         "QNX")
-            resolution=$(cat /pps/services/deviceproperties | awk -F'::' '$1 == "screen_res" { print $2 }')
+            resolution=$(awk -F'::' '$1 == "screen_res" { print $2 }' /pps/services/deviceproperties)
         ;;
 
         *)
@@ -5292,8 +5292,8 @@ get_battery() {
         ;;
 
         "QNX")
-            battery="$(cat /pps/system/BattMgr/status | sed -n 's/.*"StateOfCharge":\([0-9]*\).*/\1/p')%"
-            state="$(cat /pps/system/BattMgr/status | sed -n 's/.*"ChargerStatus":"\([^"]*\)".*/\1/p' )"
+            battery="$(sed -n 's/.*"StateOfCharge":\([0-9]*\).*/\1/p' /pps/system/BattMgr/status)%"
+            state="$(sed -n 's/.*"ChargerStatus":"\([^"]*\)".*/\1/p' /pps/system/BattMgr/status )"
             [[ "$state" == "CHARGING" ]] && battery_state="charging"
         ;;
     esac
