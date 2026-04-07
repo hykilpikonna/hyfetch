@@ -48,7 +48,7 @@ cp -r git/ wheel/hyfetch/
 
 # Embed fastfetch binary
 echo "> Embedding fastfetch binary"
-wget -q "$FASTFETCH_DL/fastfetch-windows-amd64.zip" -O fastfetch-windows.zip
+wget "$FASTFETCH_DL/fastfetch-windows-amd64.zip" -O fastfetch-windows.zip
 mkdir -p wheel/hyfetch/fastfetch
 bsdtar -zxf fastfetch-windows.zip -C wheel/hyfetch/fastfetch
 rm -rf fastfetch-windows.zip
@@ -87,7 +87,7 @@ function build_for_platform() {
     echo "Building for $ff_platform"
     
     # Download the fastfetch binary
-    wget -q "$FASTFETCH_DL/fastfetch-$ff_platform.zip" -O "fastfetch-$ff_platform.zip"
+    wget "$FASTFETCH_DL/fastfetch-$ff_platform.zip" -O "fastfetch-$ff_platform.zip"
 
     # Delete the old fastfetch folder
     rm -rf wheel/hyfetch/fastfetch
@@ -127,8 +127,8 @@ build_for_platform "linux-armv7l" "manylinux_2_31_armv7l" "armv7-unknown-linux-m
 build_for_platform "musl-amd64" "musllinux_1_1_x86_64" "x86_64-unknown-linux-musl"
 # build_for_platform "musl-aarch64" "musllinux_1_1_aarch64"
 # The official fastfetch build uses macOS 12.0
-build_for_platform "macos-universal" "macosx_11_0_x86_64" "x86_64-apple-darwin"
-build_for_platform "macos-universal" "macosx_11_0_arm64" "aarch64-apple-darwin"
+build_for_platform "macos-amd64" "macosx_11_0_x86_64" "x86_64-apple-darwin"
+build_for_platform "macos-aarch64" "macosx_11_0_arm64" "aarch64-apple-darwin"
 # TODO: linux_riscv64 (pypi's platform tag support is not there yet)
 # build_for_platform "linux-riscv64" "manylinux_2_31_riscv64"
 
