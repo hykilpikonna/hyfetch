@@ -170,8 +170,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     pre_check()
-    # export_distros() # Removed: not needed anymore for python distro generation
     edit_versions(args.version)
+
     finalize_neofetch()
     post_check()
     create_release(args.version)
