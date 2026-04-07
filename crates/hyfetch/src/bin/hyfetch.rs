@@ -633,7 +633,7 @@ fn create_config(
         );
         printc(
             format!(
-                "Which {preset_default_colored} do you want to use? (default: {})",
+                "Which {preset_default_colored} do you want to use? (default: {}, comma-separated for multiple at random)",
                 Preset::Rainbow.as_ref()
             ),
             color_mode,
@@ -643,12 +643,12 @@ fn create_config(
         io::stdout().flush().context("failed to flush preset prompt")?;
 
         if let Some(hint) = hint {
-            println!("{hint}");
+            println!("\n{hint}");
         }
         Ok(())
     };
 
-    let preset: Preset;
+    let selected_preset_names: Vec<String>;
     let color_profile;
 
     let mut page: usize = 0;
@@ -660,7 +660,9 @@ fn create_config(
             .disable()
             .context("failed to disable raw mode for rendering")?;
         let filter_lower = filter.to_ascii_lowercase();
-        let filtered_indices = filter_flag_indices(&filter_lower, &flags);
+        let parts: Vec<&str> = filter_lower.split(',').collect();
+        let current_query = parts.last().cloned().unwrap_or("");
+        let filtered_indices = filter_flag_indices(current_query, &flags);
         let num_pages = filtered_indices.len().div_ceil(flags_per_page).max(1);
         page = page.min(num_pages - 1);
 
@@ -681,13 +683,37 @@ fn create_config(
 
         match key.code {
             KeyCode::Enter => {
-                let selection = flags
-                    .iter()
-                    .find(|(_, _, name)| *name == filter_lower)
-                    .map(|(preset, _, _)| *preset)
-                    .or_else(|| filtered_indices.first().map(|&idx| flags[idx].0));
-                preset = selection.unwrap_or(Preset::Rainbow);
+                let filter_lower = filter.to_ascii_lowercase();
+                let parts: Vec<&str> = filter_lower.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+                let mut resolved_presets = Vec::new();
+
+                if parts.is_empty() {
+                    // Default to Rainbow if nothing is entered
+                    resolved_presets.push(Preset::Rainbow.as_ref().to_owned());
+                } else {
+                    for part in parts.iter() {
+                        let selection = flags
+                            .iter()
+                            .find(|(_, _, name)| name == part)
+                            .map(|(preset, _, _)| preset.as_ref().to_owned())
+                            .or_else(|| {
+                                // Fuzzy match each part
+                                let filtered = filter_flag_indices(part, &flags);
+                                filtered.first().map(|&idx| flags[idx].0.as_ref().to_owned())
+                            });
+                        
+                        if let Some(p) = selection {
+                            resolved_presets.push(p);
+                        } else {
+                            hint = Some("One or more presets could not be found.");
+                        }
+                    }
+                }
+
+                if hint.is_none() {
+                    selected_preset_names = resolved_presets;
                     break;
+                }
             },
             KeyCode::Up => {
                 page = (page + num_pages - 1) % num_pages;
@@ -724,30 +750,57 @@ fn create_config(
         .disable()
         .context("failed to disable raw mode after preset selection")?;
 
-            debug!(?preset, "selected preset");
-            color_profile = preset.color_profile();
-            update_title(
-                &mut title,
-                &mut option_counter,
-                "Selected flag",
-                &color_profile
-                    .with_lightness_adaptive(default_lightness, theme)
-                    .color_text(
-                        preset.as_ref(),
-                        color_mode,
-                        ForegroundBackground::Foreground,
-                        false,
-                    )
-                    .expect("coloring text with selected preset should not fail"),
-            );
-    printc(
-        format!(
-            "Which {preset_default_colored} do you want to use? {}\n",
-            preset.as_ref()
-        ),
-        color_mode,
-    )
-    .context("failed to print preset selection summary")?;
+    let selected_presets = if selected_preset_names.len() > 1 {
+        PresetValue::Multiple(selected_preset_names.clone())
+    } else {
+        PresetValue::Single(selected_preset_names.first().cloned().unwrap_or_else(|| Preset::Rainbow.as_ref().to_owned()))
+    };
+
+    color_profile = {
+        let first_name = selected_preset_names.first().cloned().unwrap_or_else(|| Preset::Rainbow.as_ref().to_owned());
+        if first_name.contains('#') {
+            let colors: Vec<String> = first_name.split(',').map(|s| s.trim().to_owned()).collect();
+            build_hex_color_profile(&colors).expect("hex colors should be valid")
+        } else {
+            flags.iter().find(|(_, _, name)| name == &first_name).map(|(p, _, _)| p.color_profile()).unwrap_or_else(|| Preset::Rainbow.color_profile())
+        }
+    };
+
+    {
+        let colored_names = selected_preset_names.iter().map(|name| {
+            let profile = if name.contains('#') {
+                let colors: Vec<String> = name.split(',').map(|s| s.trim().to_owned()).collect();
+                build_hex_color_profile(&colors).expect("hex colors should be valid")
+            } else {
+                flags.iter().find(|(_, _, n)| n == name).map(|(p, _, _)| p.color_profile()).unwrap_or_else(|| Preset::Rainbow.color_profile())
+            };
+            profile.with_lightness_adaptive(default_lightness, theme)
+                .color_text(name, color_mode, ForegroundBackground::Foreground, false)
+                .expect("coloring text should not fail")
+        }).join(", ");
+
+        let label = if selected_preset_names.len() > 1 {
+            "Selected flags (random)"
+        } else {
+            "Selected flag"
+        };
+
+        update_title(
+            &mut title,
+            &mut option_counter,
+            label,
+            &colored_names,
+        );
+
+        printc(
+            format!(
+                "Which {preset_default_colored} do you want to use? {}\n",
+                colored_names
+            ),
+            color_mode,
+        )
+        .context("failed to print preset selection summary")?;
+    }
 
     //////////////////////////////
     // 4. Dim/lighten colors
@@ -1227,7 +1280,7 @@ fn create_config(
     // Create config
     clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
     let config = Config {
-        preset: PresetValue::from(preset.as_ref().to_string()),
+        preset: selected_presets,
         mode: color_mode,
         light_dark: Some(theme),
         auto_detect_light_dark: Some(det_bg.is_some()),
