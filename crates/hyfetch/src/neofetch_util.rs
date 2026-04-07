@@ -322,31 +322,53 @@ where
 /// Gets the absolute path of the bash command.
 #[cfg(windows)]
 fn bash_path() -> Result<PathBuf> {
-    // Find `bash.exe` in `PATH`, but exclude the known bad paths
-    if let Some(bash_path) = find_in_path("bash.exe").context("bash.exe not found")? {
-        // Check if it's not MSYS bash https://stackoverflow.com/a/58418686/1529493
-        if !bash_path.ends_with(r"Git\usr\bin\bash.exe") {
-            // Check if it's not WSL bash
-            // See https://github.com/hykilpikonna/hyfetch/issues/233
-            let windir = env::var_os("windir").context("`windir` environ not found")?;
-            match is_same_file(&bash_path, Path::new(&windir).join(r"System32\bash.exe")) {
-                Ok(false) => return Ok(bash_path),
-                Err(err) if err.kind() == io::ErrorKind::NotFound => return Ok(bash_path),
-                _ => {}
+    // 1. Try to find a good bash.exe in PATH
+    let bash_in_path = find_in_path("bash.exe").unwrap_or(None);
+    if let Some(pth) = &bash_in_path {
+        // Check if it's not WSL bash
+        // See https://github.com/hykilpikonna/hyfetch/issues/233
+        let is_wsl = (|| {
+            let windir = env::var_os("windir")?;
+            let wsl_bash = Path::new(&windir).join(r"System32\bash.exe");
+            Some(is_same_file(pth, &wsl_bash).unwrap_or(false))
+        })()
+        .unwrap_or(false);
+
+        if !is_wsl {
+            // Check if it's not MSYS bash https://stackoverflow.com/a/58418686/1529493
+            // We prefer the Git wrapper bash if possible, but we'll accept this if it's all we have.
+            if !pth.ends_with(r"Git\usr\bin\bash.exe") {
+                return Ok(pth.clone());
             }
         }
     }
 
-    if let Some(bash_path) = find_in_path("git.exe").context("failed to find `git.exe` in `PATH`")? {
-        if bash_path.ends_with(r"Git\cmd\git.exe") {
-            let pth = bash_path.parent().unwrap().parent().unwrap().join(r"bin\bash.exe");
-            if pth.is_file() {
-                return Ok(pth);
+    // 2. Try to find git.exe in PATH and look for bash.exe relative to it
+    if let Ok(Some(git_path)) = find_in_path("git.exe") {
+        let mut current = git_path.clone();
+        for _ in 0..3 {
+            if let Some(parent) = current.parent() {
+                let bin_bash = parent.join(r"bin\bash.exe");
+                if bin_bash.is_file() {
+                    return Ok(bin_bash);
+                }
+                let usr_bin_bash = parent.join(r"usr\bin\bash.exe");
+                if usr_bin_bash.is_file() {
+                    return Ok(usr_bin_bash);
+                }
+                current = parent.to_path_buf();
+            } else {
+                break;
             }
         }
     }
 
-    Err(anyhow!("bash.exe not found"))
+    // 3. Fallback to whatever bash we found in PATH (even if it was the MSYS one)
+    if let Some(pth) = bash_in_path {
+        return Ok(pth);
+    }
+
+    Err(anyhow!("bash.exe not found. Please ensure Git for Windows is installed and in your PATH."))
 }
 
 /// Runs neofetch command, returning the piped stdout output.
