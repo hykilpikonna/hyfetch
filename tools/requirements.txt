@@ -1,0 +1,18 @@
+# Tools dependencies for HyFetch
+# Install with: pip install -r tools/requirements.txt
+
+# General utilities and API clients
+requests
+pyperclip
+packaging
+regex
+ruamel.yaml
+
+# GitHub management tools (accept_upstream.py, list_unresolved.py, gh_moderator.py)
+PyGithub
+hypy_utils
+
+# AI Content Moderator (gh_moderator.py)
+openai
+fastapi
+uvicorn
