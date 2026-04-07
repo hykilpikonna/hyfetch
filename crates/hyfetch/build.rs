@@ -7,14 +7,25 @@ use anyhow::{Context, Result};
 use fs_extra::dir::CopyOptions;
 use heck::ToUpperCamelCase;
 use indexmap::IndexMap;
-use regex::Regex;
 use serde::Deserialize;
 use unicode_normalization::UnicodeNormalization as _;
 
 #[derive(Debug)]
 struct AsciiDistro {
     pattern: String,
+    color: String,
+    foreground: Vec<u8>,
+    background: Option<u8>,
     art: String,
+}
+
+#[derive(Deserialize, Debug)]
+struct DistroHeader {
+    #[serde(rename = "match")]
+    pattern: String,
+    color: serde_json::Value,
+    foreground: Option<Vec<u8>>,
+    background: Option<u8>,
 }
 
 impl AsciiDistro {
@@ -37,31 +48,26 @@ fn main() -> Result<()> {
     let dir = PathBuf::from(env::var_os("CARGO_WORKSPACE_DIR").unwrap_or_else(|| env::var_os("CARGO_MANIFEST_DIR").unwrap()));
     let o = PathBuf::from(env::var_os("OUT_DIR").unwrap());
 
-    for file in &["neofetch", "hyfetch/data"] {
-        let src = anything_that_exist(&[
-            &dir.join(file),
-            &dir.join("../../").join(file),
-        ]).context("couldn't find neofetch")?;
-        let dst = o.join(file);
-        println!("cargo:rerun-if-changed={}", src.display());
-
-        // Copy either file or directory
-        if src.is_dir() {
-            let opt = CopyOptions { overwrite: true, copy_inside: true, ..CopyOptions::default() };
-            println!("copying {} to {}", src.display(), dst.display());
-            fs_extra::dir::copy(&src, &dst, &opt)?;
-        }
-        else { fs::copy(&src, &dst)?; }
-    }
+    let data_dir = anything_that_exist(&[
+        &dir.join("hyfetch/data"),
+        &dir.join("../../hyfetch/data"),
+    ]).context("couldn't find hyfetch/data")?;
+    
+    let dst_data = o.join("hyfetch/data");
+    fs::create_dir_all(&dst_data)?;
+    
+    // Copy hyfetch/data
+    let opt = CopyOptions { overwrite: true, copy_inside: true, ..CopyOptions::default() };
+    fs_extra::dir::copy(&data_dir, &dst_data, &opt)?;
 
     preset_codegen(&o.join("hyfetch/data/presets.json"), &o.join("presets.rs"))?;
-    export_distros(&o.join("neofetch"), &o)?;
+    export_distros(&data_dir.join("distros"), &o)?;
     Ok(())
 }
 
-fn export_distros(neofetch_path: &Path, out_path: &Path) -> Result<()>
+fn export_distros(distro_dir: &Path, out_path: &Path) -> Result<()>
 {
-    let distros = parse_ascii_distros(neofetch_path)?;
+    let distros = parse_ascii_distros(distro_dir)?;
     let mut variants = IndexMap::with_capacity(distros.len());
 
     for distro in &distros {
@@ -164,6 +170,66 @@ impl Distro {
         None
     }
 
+    pub fn color(&self) -> &str {
+        match self {
+"###,
+    );
+
+    for (variant, AsciiDistro { color, .. }) in &variants {
+        write!(buf, r###"
+            Self::{variant} => {color:?},
+"###, color = color)?;
+    }
+
+    buf.push_str(
+        r###"
+        }
+    }
+
+    pub fn foreground(&self) -> &[u8] {
+        match self {
+"###,
+    );
+
+    for (variant, AsciiDistro { foreground, .. }) in &variants {
+        if foreground.is_empty() {
+            write!(buf, r###"
+            Self::{variant} => &[],
+"###)?;
+        } else {
+            write!(buf, r###"
+            Self::{variant} => &{:?},
+"###, foreground)?;
+        }
+    }
+
+    buf.push_str(
+        r###"
+        }
+    }
+
+    pub fn background(&self) -> Option<u8> {
+        match self {
+"###,
+    );
+
+    for (variant, AsciiDistro { background, .. }) in &variants {
+        if let Some(b) = background {
+            write!(buf, r###"
+            Self::{variant} => Some({b}),
+"###)?;
+        } else {
+            write!(buf, r###"
+            Self::{variant} => None,
+"###)?;
+        }
+    }
+
+    buf.push_str(
+        r###"
+        }
+    }
+
     pub fn ascii_art(&self) -> &str {
         let art = match self {
 "###,
@@ -191,67 +257,35 @@ impl Distro {
     Ok(())
 }
 
-/// Parses ascii distros from neofetch script.
-fn parse_ascii_distros(neofetch_path: &Path) -> Result<Vec<AsciiDistro>>
+fn parse_ascii_distros(distro_dir: &Path) -> Result<Vec<AsciiDistro>>
 {
-    let nf = {
-        let nf = fs::read_to_string(neofetch_path)?;
+    let mut distros = Vec::new();
+    let mut paths: Vec<_> = fs::read_dir(distro_dir)?
+        .filter_map(|e| e.ok())
+        .map(|e| e.path())
+        .collect();
+    paths.sort();
 
-        // Get the content of "get_distro_ascii" function
-        let (_, nf) = nf
-            .split_once("get_distro_ascii() {\n")
-            .context("couldn't find get_distro_ascii function")?;
-        let (nf, _) = nf
-            .split_once("\n}\n")
-            .context("couldn't find end of get_distro_ascii function")?;
-
-        let mut nf = nf.replace('\t', &" ".repeat(4));
-
-        // Remove trailing spaces
-        while nf.contains(" \n") {
-            nf = nf.replace(" \n", "\n");
+    for path in paths {
+        if path.extension().and_then(|s| s.to_str()) == Some("ascii") {
+            let content = fs::read_to_string(&path)?;
+            let (header_line, art) = content.split_once('\n').context("invalid distro file")?;
+            let header: DistroHeader = serde_json::from_str(header_line)?;
+            let color = match header.color {
+                serde_json::Value::String(s) => s,
+                serde_json::Value::Number(n) => n.to_string(),
+                _ => "7".to_owned(),
+            };
+            distros.push(AsciiDistro {
+                pattern: header.pattern,
+                color,
+                foreground: header.foreground.unwrap_or_default(),
+                background: header.background,
+                art: art.to_owned(),
+            });
         }
-        nf
-    };
-
-    let case_re = Regex::new(r"case .*? in\n")?;
-    let eof_re = Regex::new(r"EOF[ \n]*?;;")?;
-
-    // Split by blocks
-    let mut blocks = Vec::new();
-    for b in case_re.split(&nf) {
-        blocks.extend(eof_re.split(b).map(|sub| sub.trim()));
     }
-
-    // Parse blocks
-    fn parse_block(block: &str) -> Option<AsciiDistro> {
-        let (block, art) = block.split_once("'EOF'\n")?;
-
-        // Join \
-        //
-        // > A <backslash> that is not quoted shall preserve the literal value of the
-        // > following character, with the exception of a <newline>. If a <newline>
-        // > follows the <backslash>, the shell shall interpret this as line
-        // > continuation. The <backslash> and <newline> shall be removed before
-        // > splitting the input into tokens. Since the escaped <newline> is removed
-        // > entirely from the input and is not replaced by any white space, it cannot
-        // > serve as a token separator.
-        // See https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_02_01
-        let block = block.replace("\\\n", "");
-
-        // Get case pattern
-        let pattern = block
-            .split('\n')
-            .next()
-            .and_then(|pattern| pattern.trim().strip_suffix(')'))?;
-
-        // Unescape backslashes here because backslashes are escaped in neofetch
-        // for printf
-        let art = art.replace(r"\\", r"\");
-
-        Some(AsciiDistro { pattern: pattern.to_owned(), art })
-    }
-    Ok(blocks.iter().filter_map(|block| parse_block(block)).collect())
+    Ok(distros)
 }
 
 // Preset parsing

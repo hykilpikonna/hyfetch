@@ -241,27 +241,27 @@ pub fn get_distro_ascii<S>(distro: Option<S>, backend: Backend) -> Result<RawAsc
 where
     S: AsRef<str> + fmt::Debug,
 {
-    let distro: Cow<_> = if let Some(distro) = distro.as_ref() {
+    let distro_name: Cow<_> = if let Some(distro) = distro.as_ref() {
         distro.as_ref().into()
     } else {
         get_distro_name(backend)
             .context("failed to get distro name")?
             .into()
     };
-    debug!(%distro, "distro name");
+    debug!(%distro_name, "distro name");
 
     // Try new codegen-based detection method
-    if let Some(distro) = Distro::detect(&distro) {
+    if let Some(distro) = Distro::detect(&distro_name) {
         let asc = distro.ascii_art().to_owned();
         let fg = ascii_foreground(&distro);
 
         return Ok(RawAsciiArt { asc, fg });
     }
 
-    debug!(%distro, "could not find a match for distro; falling back to neofetch");
+    debug!(%distro_name, "could not find a match for distro; falling back to neofetch");
 
     // Old detection method that calls neofetch
-    let asc = run_neofetch_command_piped(&["print_ascii", "--ascii_distro", distro.as_ref()])
+    let asc = run_neofetch_command_piped(&["print_ascii", "--ascii_distro", distro_name.as_ref()])
         .context("failed to get ascii art from neofetch")?;
 
     // Unescape backslashes here because backslashes are escaped in neofetch for
@@ -728,65 +728,8 @@ fn run_macchina(asc: String, args: Option<&Vec<String>>) -> Result<()> {
 /// Gets the color indices that should be considered as foreground, for a
 /// particular distro's ascii art.
 fn ascii_foreground(distro: &Distro) -> Vec<NeofetchAsciiIndexedColor> {
-    let fg: Vec<u8> = match distro {
-        Distro::Anarchy => vec![2],
-        Distro::Android => vec![2],
-        Distro::Antergos => vec![1],
-        Distro::ArchStrike => vec![2],
-        Distro::Arkane => vec![1],
-        Distro::Asahi => vec![5],
-        Distro::Astra_Linux => vec![2],
-        Distro::BlackArch => vec![3],
-        Distro::CelOS => vec![3],
-        Distro::Chapeau => vec![2],
-        Distro::Chrom => vec![5],
-        Distro::Clear_Linux_OS => vec![2],
-        Distro::Container_Linux_by_CoreOS => vec![3],
-        Distro::CRUX => vec![3],
-        Distro::EuroLinux => vec![2],
-        Distro::eweOS => vec![3],
-        Distro::Fedora => vec![2],
-        Distro::Fedora_Sericea => vec![2],
-        Distro::Fedora_Silverblue => vec![2],
-        Distro::GalliumOS => vec![2],
-        Distro::Gentoo => vec![1],
-        Distro::HarDClanZ => vec![2],
-        Distro::Kibojoe => vec![3],
-        Distro::KrassOS => vec![2],
-        Distro::Kubuntu => vec![2],
-        Distro::Linux => vec![1],
-        Distro::LinuxFromScratch => vec![1, 3],
-        Distro::Lubuntu => vec![2],
-        Distro::openEuler => vec![2],
-        Distro::orchid => vec![1],
-        Distro::Panwah => vec![1],
-        Distro::Peppermint => vec![2],
-        Distro::PNM_Linux => vec![2],
-        Distro::Pop__OS => vec![2],
-        Distro::Reborn_OS => vec![1],
-        Distro::SalentOS => vec![4],
-        Distro::Septor => vec![2],
-        Distro::Ubuntu_Cinnamon => vec![2],
-        Distro::Ubuntu_Kylin => vec![2],
-        Distro::Ubuntu_MATE => vec![2],
-        Distro::Ubuntu_old => vec![2],
-        Distro::Ubuntu_Studio => vec![2],
-        Distro::Ubuntu_Sway => vec![2],
-        Distro::Ultramarine_Linux => vec![2],
-        Distro::Univention => vec![2],
-        Distro::uwuntu => vec![2],
-        Distro::Vanilla => vec![2],
-        Distro::VNux => vec![3, 5],
-        Distro::Void => vec![2],
-        Distro::Xray_OS => vec![2, 3],
-        Distro::Xubuntu => vec![2],
-        _ => Vec::new(),
-    };
-
-    fg.into_iter()
-        .map(|fore| {
-            fore.try_into()
-                .expect("`fore` should be a valid neofetch color index")
-        })
+    distro.foreground()
+        .iter()
+        .map(|&f| f.try_into().expect("neofetch color index should be valid"))
         .collect()
 }

@@ -372,12 +372,7 @@ impl NormalizedAsciiArt {
                             // Line starts with neofetch color code
                             last = Some(&line[m.span()]);
                         },
-                        Some(_) => {
-                            new.push_str(last.context(
-                                "failed to find neofetch color code from a previous line",
-                            )?);
-                        },
-                        None => {
+                        _ => {
                             new.push_str(last.unwrap_or(NEOFETCH_COLOR_PATTERNS[0]));
                         },
                     }
@@ -385,7 +380,6 @@ impl NormalizedAsciiArt {
 
                     // Get the last placeholder for the next line
                     if let Some(m) = matches.last() {
-                        last.context("non-space character seen before first color code")?;
                         last = Some(&line[m.span()]);
                     }
 
