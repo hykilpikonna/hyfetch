@@ -119,6 +119,8 @@ cargo install --git https://github.com/hykilpikonna/hyfetch
 
 <!-- CHANGELOG STARTS HERE --->
 
+### 2.1.0
+
 ### 2.1.0-rc1
 
 ### 2.1.0
