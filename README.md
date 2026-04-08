@@ -38,6 +38,7 @@ Currently, these distributions have existing packages for HyFetch:
 * Nix Profile: `nix profile install nixpkgs#hyfetch`
 * Guix: `guix install hyfetch` (Thanks to [@WammKD](https://github.com/WammKD))
 * Slackware: `sbopkg -b hyfetch` [Slackbuild](https://slackbuilds.org/repository/15.0/desktop/hyfetch/?search=hyfetch) (Thanks to [@bittin](https://github.com/bittin) , willysr (https://github.com/willysr), jebrhansen and Urchlay)
+The Slackware package is Orphan
 * Homebrew: `brew install hyfetch` (Thanks to [@catumin](https://github.com/catumin) and [@osalbahr](https://github.com/osalbahr))
 * openSUSE Tumbleweed: `zypper in python311-hyfetch` (Thanks to [@catumin](https://github.com/catumin))
 * Gentoo: `emerge --ask app-misc/hyfetch` (Thanks to [@catumin](https://github.com/catumin))
