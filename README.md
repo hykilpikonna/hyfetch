@@ -109,16 +109,6 @@ You can also install your version locally by running `pip install .` in the repo
 
 ## Change Log
 
-### About Notation
-
-Updates to HyFetch begins with the emoji 🌈  
-Updates to `neowofetch` begins with the emoji 🖼️
-
-### TODO
-
-* [ ] (Important!) Refactor flag storage & coloring to support non-stride patterns
-* [ ] Config menu: Allow left-right arrow keys for pagination
-
 ### Nightly
 
 Note: You can install the latest nightly version by using:
@@ -276,6 +266,11 @@ This is a massive update, rewriting the entire hyfetch core from Python to Rust 
 ### 1.99.0
 
 This version would be the last version of HyFetch on Python as we migrate to Rust (Huge thanks to everyone on [#317](https://github.com/hykilpikonna/hyfetch/pull/317)!). It will also be an effort to start a transition that phases out the neowofetch/neofetch backend in favor of FastFetch, since the time needed to maintain the NF backend currently exceed our capacity. If you are willing to help maintaining it, please let us know!
+
+### About Notation
+
+Updates to HyFetch begins with the emoji 🌈  
+Updates to `neowofetch` begins with the emoji 🖼️
 
 * 🌈 **Improve Windows support**
 * 🌈 **Include FastFetch into HyFetch PyPI package**
