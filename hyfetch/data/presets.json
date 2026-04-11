@@ -241,5 +241,9 @@
   "haruhi": {
     "colors": ["#613D2F", "#F5B422", "#613D2F", "#613D2F", "#57A4B8", "#F20205", "#57A4B8", "#57A4B8", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#57A4B8", "#57A4B8", "#F20205", "#57A4B8", "#613D2F", "#613D2F", "#F5B422", "#613D2F"],
     "comment": "Haruhi Suzumiya preset"
+  },
+  "queervillain": {
+    "colors": ["#662D91", "#8DC63F", "#F7941D", "#EC008C"],
+    "comment": "Sourced from https://distressedegg.fun/qvp"
   }
 }
