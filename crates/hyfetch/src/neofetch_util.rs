@@ -411,8 +411,14 @@ where
     {
         let bash_path = bash_path().context("failed to get bash path")?;
         let mut command = Command::new(bash_path);
-        command.arg(neofetch_path);
-        command.args(args);
+
+        // Convert path to use forward slashes because bash will interpret backslashes as escapes
+        command.arg(neofetch_path.to_string_lossy().replace('\\', "/"));
+
+        for arg in args {
+            // Also convert any backslashes in arguments to forward slashes for bash
+            command.arg(arg.as_ref().to_string_lossy().replace('\\', "/"));
+        }
         Ok(command)
     }
 }
