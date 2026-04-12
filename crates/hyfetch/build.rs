@@ -146,9 +146,7 @@ impl Distro {
 
             // Both sides are *
             if m.starts_with('*') && m.ends_with('*') {
-                conds.push(format!(
-                    r#"name.starts_with("{stripped}") || name.ends_with("{stripped}")"#
-                ));
+                conds.push(format!(r#"name.contains("{stripped}")"#));
                 continue;
             }
 
@@ -273,7 +271,15 @@ fn parse_ascii_distros(distro_dir: &Path) -> Result<Vec<AsciiDistro>>
         .filter_map(|e| e.ok())
         .map(|e| e.path())
         .collect();
-    paths.sort();
+    // Sort by name length descending, then name descending.
+    // This ensures that more specific distros (e.g. windows_11, arch_small) are
+    // checked before more general ones (e.g. windows, arch).
+    paths.sort_by(|a, b| {
+        b.to_str()
+            .map_or(0, |s| s.len())
+            .cmp(&a.to_str().map_or(0, |s| s.len()))
+            .then(b.cmp(a))
+    });
 
     for path in paths {
         if path.extension().and_then(|s| s.to_str()) == Some("ascii") {
