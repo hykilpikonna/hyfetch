@@ -248,19 +248,22 @@ def check_windows_cmd():
     #         sys.exit(0)
 
 
-def run_neofetch_cmd(args: str, pipe: bool = False) -> str | None:
+def run_neofetch_cmd(args: str | list[str], pipe: bool = False) -> str | None:
     """
     Run neofetch command
     """
+    if isinstance(args, str):
+        args = shlex.split(args)
+
     if platform.system() != 'Windows':
         bash = ['/usr/bin/env', 'bash'] if Path('/usr/bin/env').is_file() else [shutil.which('bash')]
-        full_cmd = [*bash, get_command_path(), *shlex.split(args)]
+        full_cmd = [*bash, get_command_path(), *args]
 
     else:
         cmd = get_command_path().replace("\\", "/").replace("C:/", "/c/")
-        args = args.replace('\\', '/').replace('C:/', '/c/')
+        args = [a.replace('\\', '/').replace('C:/', '/c/') for a in args]
 
-        full_cmd = [ensure_git_bash(), cmd, *shlex.split(args)]
+        full_cmd = [ensure_git_bash(), cmd, *args]
 
     full_cmd = [str(c) for c in full_cmd]
     if pipe:

@@ -40,6 +40,7 @@ Homepage = "https://github.com/hykilpikonna/HyFetch"
 "hyfetch.v1" = "hyfetch.__main__:run_py"
 "hyfetch.rs" = "hyfetch.__main__:run_rust"
 "hyfetch" = "hyfetch.__main__:run_rust"
+"neowofetch" = "hyfetch.__main__:run_neofetch"
 
 [tool.hatch.version]
 source = "regex"
@@ -49,5 +50,4 @@ regex = 'version = "(?P<version>.+?)"'
 [tool.hatch.build]
 exclude = ["/tools"]
 
-[tool.hatch.build.targets.wheel.files]
-"{py_scripts}/neowofetch" = "hyfetch/scripts/neowofetch"
+
