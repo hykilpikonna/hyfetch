@@ -37,8 +37,6 @@ me = gh.get_user()
 repo = gh.get_repo(config["gh_repo"])
 printc(f"&a[+] Logged in as {me.login}")
 
-harm_classifier_url, harm_classifier_token = config["harm_classifier_url"], config["harm_classifier_token"]
-
 script_path = Path(__file__).parent
 supported_events = ["issue_comment", "issues", "pull_request", "pull_request_review_comment"]
 ai_notice = f"If you think this is a false-positive, please contact the owner of this repo."

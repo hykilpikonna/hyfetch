@@ -5,6 +5,10 @@ webhook_secret = "secret"
 gh_token = "token"
 gh_repo = "owner/repo"
 
-# AI harm classifier token
-harm_classifier_url = "https://example.com/classify"
-harm_classifier_token = "token"
+
+
+[OpenAI]
+org = "your-org-id"
+key = "your-api-key"
+model = "omni-moderation-latest"
+threshold = 0.7
