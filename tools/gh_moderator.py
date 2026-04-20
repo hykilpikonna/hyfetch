@@ -11,13 +11,12 @@ import unicodedata
 from datetime import datetime
 from pathlib import Path
 
-import openai
+from openai import OpenAI
 import tomllib as toml
 from fastapi import FastAPI, Request, Response
 from github import Github
 from hypy_utils import write, json_stringify
 from hypy_utils.logging_utils import setup_logger
-from openai.openai_object import OpenAIObject
 
 from hyfetch.color_util import printc
 
@@ -44,8 +43,10 @@ script_path = Path(__file__).parent
 supported_events = ["issue_comment", "issues", "pull_request", "pull_request_review_comment"]
 ai_notice = f"If you think this is a false-positive, please contact the owner of this repo."
 
-openai.organization = config['OpenAI']['org']
-openai.api_key = config['OpenAI']['key']
+oa_client = OpenAI(
+    api_key=config['OpenAI']['key'],
+    organization=config['OpenAI']['org']
+)
 openai_model = config['OpenAI']['model']
 
 
@@ -112,7 +113,7 @@ async def process_event(event: str, obj: dict, id: str):
     content = unicodedata.normalize("NFKC", get_content(event, obj))
 
     # Ask OpenAI to predict if it's offensive
-    res: OpenAIObject = openai.Moderation.create(content, openai_model).results[0]
+    res = oa_client.moderations.create(input=content, model=openai_model).results[0]
     write(f"moderator-data/openai/{id}.json", json_stringify(res))
     if res.flagged:
         printc(f"\n&c[!] AI classified {event} {id} by {actor} as offensive !!!\n> Content: {content}\n\n")
