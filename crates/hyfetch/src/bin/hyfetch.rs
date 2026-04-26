@@ -135,6 +135,10 @@ fn main() -> Result<()> {
 
     let backend = options.backend.unwrap_or(config.backend);
     let args = options.args.as_ref().or(config.args.as_ref());
+    #[cfg(feature = "macchina")]
+    let palette_glyph: Option<&String> = options.palette_glyph.as_ref().or(config.palette_glyph.as_ref());
+    #[cfg(not(feature = "macchina"))]
+    let palette_glyph: Option<&String> = None;
 
     fn parse_preset_string(preset_string: &str, config: &Config) -> Result<ColorProfile> {
         if preset_string.contains('#') {
@@ -225,7 +229,8 @@ fn main() -> Result<()> {
     let asc = asc
         .to_recolored(&color_align, &color_profile, color_mode, theme)
         .context("failed to recolor ascii")?;
-    neofetch_util::run(asc, backend, args)?;
+    neofetch_util::run(asc, backend, args, palette_glyph)?;
+    
 
     if options.ask_exit {
         input(Some("Press enter to exit...")).context("failed to read input")?;
@@ -1232,6 +1237,101 @@ fn create_config(
     );
 
     //////////////////////////////
+    // 7.5. If using macchina, ask for custom palette glyph
+
+    #[cfg(feature = "macchina")]
+    let mut palette_glyph: Option<String> = None;
+    
+    #[cfg(feature = "macchina")]
+    if backend == Backend::Macchina {
+        clear_screen(Some(&title), color_mode, debug_mode)
+                .context("failed to clear screen")?;
+        print_title_prompt(option_counter, "Create a glyph for macchina (leave empty for None):");
+        
+        let color_palette: [&str; 8] = match theme {
+            TerminalTheme::Dark => ["&0","&4","&2","&6","&1","&5","&3","&8"],
+            TerminalTheme::Light => ["&8", "&c", "&a", "&e", "&9", "&d", "&b", "&f"]
+        };
+
+        let print_palette = |glyph: &str, palette_list: [&str; 8]| -> Result<()> {
+            clear_screen(Some(&title), color_mode, debug_mode)
+                .context("failed to clear screen")?;
+            print_title_prompt(option_counter, "Create a glyph for macchina (leave empty for None):");
+
+            let palette_for_print: String = palette_list
+                .into_iter()
+                .map(|s| s.to_owned() + glyph + "&r" )
+                .collect();
+
+            printc!("Preview:\n{}", palette_for_print);
+            print!("> {glyph}");
+            io::stdout().flush().context("failed to flush preset prompt")?;
+            Ok(())
+        };
+
+        let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
+        let mut entered_glyph = String::new();
+        loop {
+            raw_mode
+                .disable()
+                .context("failed to disable raw mode for rendering")?;
+
+            print_palette(&entered_glyph, color_palette).context("failed to clear screen during glyph input")?;
+
+            raw_mode
+                .enable()
+                .context("failed to enable raw mode for key input")?;
+            let event = event::read().context("failed to read keyboard event")?;
+            let Event::Key(key) = event else {
+                continue;
+            };
+            if !matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat) {
+                continue;
+            }
+
+            match key.code {
+                KeyCode::Enter => {
+                    break; 
+                },
+                KeyCode::Backspace => {
+                    entered_glyph.pop();
+                },
+                KeyCode::Esc => {
+                    entered_glyph.clear();
+                },
+                KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    raw_mode
+                        .disable()
+                        .context("failed to disable raw mode before interrupting")?;
+                    println!();
+                    return Err(anyhow::anyhow!("interrupted by user"));
+                },
+                KeyCode::Char(c)
+                    if !key.modifiers.contains(KeyModifiers::CONTROL)
+                        && !key.modifiers.contains(KeyModifiers::ALT) =>
+                {
+                    entered_glyph.push(c);
+                },
+                _ => {},
+            }
+        }
+        raw_mode
+            .disable()
+            .context("failed to disable raw mode after preset selection")?;
+        
+        palette_glyph = if !entered_glyph.is_empty() { 
+            Some(entered_glyph) 
+        } else { None };
+
+        update_title(
+            &mut title,
+            &mut option_counter,
+            "Selected glyph",
+            &palette_glyph.as_ref().unwrap_or(&String::from("None")),
+        );
+    }
+
+    //////////////////////////////
     // 8. Custom ASCII file
     let mut custom_ascii_path: Option<String> = None;
     clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
@@ -1292,6 +1392,8 @@ fn create_config(
         pride_month_disable: false,
         custom_ascii_path,
         custom_presets: None,
+        #[cfg(feature = "macchina")]
+        palette_glyph
     };
     debug!(?config, "created config");
 

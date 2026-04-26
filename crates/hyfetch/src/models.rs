@@ -24,6 +24,8 @@ pub struct Config {
     pub pride_month_disable: bool,
     pub custom_ascii_path: Option<String>,
     pub custom_presets: Option<HashMap<String, Vec<String>>>,
+    #[cfg(feature = "macchina")]
+    pub palette_glyph: Option<String>
 }
 
 impl Config {

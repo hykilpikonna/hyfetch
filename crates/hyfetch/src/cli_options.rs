@@ -32,6 +32,8 @@ pub struct Options {
     pub test_print: bool,
     pub ask_exit: bool,
     pub auto_detect_light_dark: Option<bool>,
+    #[cfg(feature = "macchina")]
+    pub palette_glyph: Option<String>
 }
 
 pub fn options() -> OptionParser<Options> {
@@ -153,7 +155,14 @@ BACKEND={{{backends}}}",
         .argument("BOOL")
         .optional();
 
-    construct!(Options {
+    #[cfg(feature = "macchina")]
+    let palette_glyph = long("palette-glyph")
+        .help("Sets the glyph to be used for the macchina backend")
+        .argument("STR")
+        .optional();
+
+    #[cfg(feature = "macchina")]
+    return construct!(Options {
         config,
         config_file,
         preset,
@@ -171,6 +180,7 @@ BACKEND={{{backends}}}",
         test_print,
         ask_exit,
         auto_detect_light_dark,
+        palette_glyph
     })
     .to_options()
     .header(
@@ -180,7 +190,37 @@ BACKEND={{{backends}}}",
         )
         .expect("header should not contain invalid color codes"),
     )
-    .version(env!("CARGO_PKG_VERSION"))
+    .version(env!("CARGO_PKG_VERSION"));
+
+    #[cfg(not(feature = "macchina"))]
+    return construct!(Options {
+        config,
+        config_file,
+        preset,
+        mode,
+        backend,
+        args,
+        scale,
+        lightness,
+        june,
+        debug,
+        distro,
+        ascii_file,
+        print_font_logo,
+        // hidden
+        test_print,
+        ask_exit,
+        auto_detect_light_dark
+    })
+    .to_options()
+    .header(
+        &*color(
+            "&l&bhyfetch&~&L - neofetch with flags <3",
+            AnsiMode::Ansi256,
+        )
+        .expect("header should not contain invalid color codes"),
+    )
+    .version(env!("CARGO_PKG_VERSION"));
 }
 
 #[cfg(feature = "autocomplete")]
