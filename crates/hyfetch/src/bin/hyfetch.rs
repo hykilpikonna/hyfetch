@@ -138,18 +138,6 @@ fn main() -> Result<()> {
     let args = options.args.as_ref().or(config.args.as_ref());
     #[cfg(feature = "macchina")]
     let palette_glyph: Option<&String> = options.palette_glyph.as_ref().or(config.palette_glyph.as_ref());
-    #[cfg(feature = "macchina")]
-    let palette_type: Option<&String> = options.palette_type.as_ref().or(config.palette_type.as_ref());
-    #[cfg(feature = "macchina")]
-    let palette: Option<Palette> = if let Some(glyph) = palette_glyph {
-        if let Some(type_str) = palette_type {
-            if let Ok(mut parsed_type) = Palette::from_str(type_str) {
-                parsed_type.get_glyph_mut().push_str(glyph);
-                Some(parsed_type)
-            } else { Some(Palette::Full(glyph.to_owned())) }
-        } else { Some(Palette::Full(glyph.to_owned())) }
-    } else { None };
-
     #[cfg(not(feature = "macchina"))]
     let palette: Option<&String> = None;
 
