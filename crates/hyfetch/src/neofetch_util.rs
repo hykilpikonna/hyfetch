@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
-#[cfg(feature = "macchina")]
 use std::fs;
 use std::io::{Write as _};
 use std::path::PathBuf;
@@ -14,6 +13,9 @@ use indexmap::IndexMap;
 use itertools::Itertools as _;
 #[cfg(windows)]
 use anyhow::anyhow;
+#[cfg(feature = "macchina")]
+use crate::models::Palette;
+#[cfg(feature = "macchina")]
 #[cfg(windows)]
 use crate::utils::find_file;
 #[cfg(windows)]
@@ -33,7 +35,10 @@ use crate::ascii::{RawAsciiArt, RecoloredAsciiArt};
 use crate::color_util::{printc, NeofetchAsciiIndexedColor, PresetIndexedColor};
 use crate::distros::Distro;
 use crate::types::{AnsiMode, Backend};
+#[cfg(feature = "macchina")]
 use crate::utils::{find_in_path, get_cache_path, input, process_command_status};
+#[cfg(not(feature = "macchina"))]
+use crate::utils::{get_cache_path, input, process_command_status};
 
 pub const TEST_ASCII: &str = r####################"
 ### |\___/| ###
@@ -273,14 +278,14 @@ where
 }
 
 #[tracing::instrument(level = "debug", skip(asc), fields(asc.w = asc.w, asc.h = asc.h))]
-pub fn run(asc: RecoloredAsciiArt, backend: Backend, args: Option<&Vec<String>>) -> Result<()> {
+pub fn run(asc: RecoloredAsciiArt, backend: Backend, args: Option<&Vec<String>>, palette: Option<Palette>) -> Result<()> {
     let asc = asc.lines.join("\n");
 
     match backend {
         Backend::Neofetch => run_neofetch(asc, args).context("failed to run neofetch")?,
         Backend::Fastfetch => run_fastfetch(asc, args).context("failed to run fastfetch")?,
         #[cfg(feature = "macchina")]
-        Backend::Macchina => run_macchina(asc, args).context("failed to run macchina")?,
+        Backend::Macchina => run_macchina(asc, args, palette).context("failed to run macchina")?,
     }
 
     Ok(())
@@ -664,7 +669,7 @@ fn run_fastfetch(asc: String, args: Option<&Vec<String>>) -> Result<()> {
 /// Runs macchina with custom ascii art.
 #[cfg(feature = "macchina")]
 #[tracing::instrument(level = "debug", skip(asc))]
-fn run_macchina(asc: String, args: Option<&Vec<String>>) -> Result<()> {
+fn run_macchina(asc: String, args: Option<&Vec<String>>, palette: Option<Palette>) -> Result<()> {
     // Write ascii art to temp file
     let asc_file_path = {
         let mut temp_file = tempfile::Builder::new()
@@ -695,6 +700,13 @@ fn run_macchina(asc: String, args: Option<&Vec<String>>) -> Result<()> {
                 "path",
                 &*asc_file_path.to_string_lossy(),
             )]));
+            if let Some(p) = palette {
+                doc["palette"] = Item::Table(Table::from_iter([
+                    ("type", value(p.to_string())),
+                    ("glyph", value(p.get_glyph())),
+                    ("visible", value(true))
+                ]))
+            }
             doc
         };
         debug!(%theme_doc, "macchina theme");
