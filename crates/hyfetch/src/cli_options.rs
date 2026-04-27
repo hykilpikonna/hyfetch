@@ -33,7 +33,9 @@ pub struct Options {
     pub ask_exit: bool,
     pub auto_detect_light_dark: Option<bool>,
     #[cfg(feature = "macchina")]
-    pub palette_glyph: Option<String>
+    pub palette_glyph: Option<String>,
+    #[cfg(feature = "macchina")]
+    pub palette_type: Option<String>
 }
 
 pub fn options() -> OptionParser<Options> {
@@ -160,6 +162,12 @@ BACKEND={{{backends}}}",
         .help("Sets the glyph to be used for the macchina backend")
         .argument("STR")
         .optional();
+    #[cfg(feature = "macchina")]
+    let palette_type = long("palette-type")
+        .help("Sets the type of palette to be used for the macchina backend")
+        .argument("full,light,dark")
+        .optional();
+    #[cfg(feature = "macchina")]
 
     #[cfg(feature = "macchina")]
     return construct!(Options {
@@ -180,7 +188,8 @@ BACKEND={{{backends}}}",
         test_print,
         ask_exit,
         auto_detect_light_dark,
-        palette_glyph
+        palette_glyph,
+        palette_type
     })
     .to_options()
     .header(

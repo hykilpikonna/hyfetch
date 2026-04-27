@@ -8,6 +8,7 @@ use std::iter;
 use std::iter::zip;
 use std::num::NonZeroU8;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 use aho_corasick::AhoCorasick;
 use anyhow::{Context as _, Result};
@@ -24,7 +25,7 @@ use hyfetch::color_util::{
     NeofetchAsciiIndexedColor, PresetIndexedColor, Theme as _, ToAnsiString as _,
 };
 use hyfetch::distros::Distro;
-use hyfetch::models::{build_hex_color_profile, Config, PresetValue};
+use hyfetch::models::{Config, Palette, PresetValue, build_hex_color_profile};
 #[cfg(feature = "macchina")]
 use hyfetch::neofetch_util::macchina_path;
 use hyfetch::neofetch_util::{self, add_pkg_path, fastfetch_path, get_distro_ascii, get_distro_name, literal_input, ColorAlignment, NEOFETCH_COLORS_AC, NEOFETCH_COLOR_PATTERNS, TEST_ASCII};
@@ -137,8 +138,20 @@ fn main() -> Result<()> {
     let args = options.args.as_ref().or(config.args.as_ref());
     #[cfg(feature = "macchina")]
     let palette_glyph: Option<&String> = options.palette_glyph.as_ref().or(config.palette_glyph.as_ref());
+    #[cfg(feature = "macchina")]
+    let palette_type: Option<&String> = options.palette_type.as_ref().or(config.palette_glyph.as_ref());
+    #[cfg(feature = "macchina")]
+    let palette: Option<Palette> = if let Some(glyph) = palette_glyph {
+        if let Some(type_str) = palette_type {
+            if let Ok(mut parsed_type) = Palette::from_str(type_str) {
+                parsed_type.get_glyph_mut().push_str(glyph);
+                Some(parsed_type)
+            } else { Some(Palette::Full(glyph.to_owned())) }
+        } else { Some(Palette::Full(glyph.to_owned())) }
+    } else { None };
+
     #[cfg(not(feature = "macchina"))]
-    let palette_glyph: Option<&String> = None;
+    let palette: Option<&String> = None;
 
     fn parse_preset_string(preset_string: &str, config: &Config) -> Result<ColorProfile> {
         if preset_string.contains('#') {
@@ -229,7 +242,7 @@ fn main() -> Result<()> {
     let asc = asc
         .to_recolored(&color_align, &color_profile, color_mode, theme)
         .context("failed to recolor ascii")?;
-    neofetch_util::run(asc, backend, args, palette_glyph)?;
+    neofetch_util::run(asc, backend, args, palette)?;
     
 
     if options.ask_exit {
@@ -1239,44 +1252,54 @@ fn create_config(
     //////////////////////////////
     // 7.5. If using macchina, ask for custom palette glyph
 
-    #[cfg(feature = "macchina")]
-    let mut palette_glyph: Option<String> = None;
-    
+    let mut palette: Option<Palette> = Some(Palette::Full("".to_owned()));
+
     #[cfg(feature = "macchina")]
     if backend == Backend::Macchina {
+        use hyfetch::formatc;
+
+        let mut current_title = "Create a glyph for macchina (leave empty for None):";
+
         clear_screen(Some(&title), color_mode, debug_mode)
                 .context("failed to clear screen")?;
-        print_title_prompt(option_counter, "Create a glyph for macchina (leave empty for None):");
+        print_title_prompt(option_counter, current_title);
         
-        let color_palette: [&str; 8] = match theme {
-            TerminalTheme::Dark => ["&0","&4","&2","&6","&1","&5","&3","&8"],
-            TerminalTheme::Light => ["&8", "&c", "&a", "&e", "&9", "&d", "&b", "&f"]
-        };
+        const DARK_COLORS: [&str; 8] = ["&0","&4","&2","&6","&1","&5","&3","&8"];
+        const LIGHT_COLORS: [&str; 8] = ["&8","&c","&a","&e","&9","&d","&b","&f"];
 
-        let print_palette = |glyph: &str, palette_list: [&str; 8]| -> Result<()> {
-            clear_screen(Some(&title), color_mode, debug_mode)
-                .context("failed to clear screen")?;
-            print_title_prompt(option_counter, "Create a glyph for macchina (leave empty for None):");
-
-            let palette_for_print: String = palette_list
+        let to_palette = |glyph: &str, colors: [&str; 8]| -> String {
+            colors
                 .into_iter()
                 .map(|s| s.to_owned() + glyph + "&r" )
-                .collect();
+                .collect()
+        };
 
-            printc!("Preview:\n{}", palette_for_print);
-            print!("> {glyph}");
+        let print_palette = |palette: &mut Palette, current_title: &str| -> Result<()> {
+            clear_screen(Some(&title), color_mode, debug_mode)
+                .context("failed to clear screen")?;
+            print_title_prompt(option_counter, current_title);
+            
+            match palette {
+                Palette::Full(glyph) => 
+                    printc!("Preview:\n{}\n{}\n", to_palette(glyph, DARK_COLORS), 
+                                                to_palette(glyph, LIGHT_COLORS)),
+                Palette::Light(glyph) => 
+                    printc!("Preview:\n{}\n\n", to_palette(glyph, LIGHT_COLORS)),
+                Palette::Dark(glyph) => 
+                    printc!("Preview:\n{}\n\n", to_palette(glyph, DARK_COLORS))
+            }
+            print!("> {}", palette.get_glyph());
             io::stdout().flush().context("failed to flush preset prompt")?;
             Ok(())
         };
 
         let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
-        let mut entered_glyph = String::new();
         loop {
             raw_mode
                 .disable()
                 .context("failed to disable raw mode for rendering")?;
 
-            print_palette(&entered_glyph, color_palette).context("failed to clear screen during glyph input")?;
+            print_palette(palette.as_mut().unwrap(), current_title).context("failed to print palette during glyph input")?;
 
             raw_mode
                 .enable()
@@ -1294,10 +1317,18 @@ fn create_config(
                     break; 
                 },
                 KeyCode::Backspace => {
-                    entered_glyph.pop();
+                    palette
+                        .as_mut()
+                        .unwrap()
+                        .get_glyph_mut()
+                        .pop();
                 },
                 KeyCode::Esc => {
-                    entered_glyph.clear();
+                    palette
+                        .as_mut()
+                        .unwrap()
+                        .get_glyph_mut()
+                        .clear();
                 },
                 KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     raw_mode
@@ -1310,26 +1341,96 @@ fn create_config(
                     if !key.modifiers.contains(KeyModifiers::CONTROL)
                         && !key.modifiers.contains(KeyModifiers::ALT) =>
                 {
-                    entered_glyph.push(c);
+                    palette
+                        .as_mut()
+                        .unwrap()
+                        .get_glyph_mut()
+                        .push(c);
                 },
                 _ => {},
             }
         }
         raw_mode
             .disable()
-            .context("failed to disable raw mode after preset selection")?;
+            .context("failed to disable raw mode after entering glyph")?;
+        drop(raw_mode);
+
+        if palette.as_ref().unwrap().get_glyph().is_empty() {
+            palette = None;
+        }
         
-        palette_glyph = if !entered_glyph.is_empty() { 
-            Some(entered_glyph) 
-        } else { None };
+        if let Some(palette) = palette.as_mut() {
+            current_title = "Pick your palette type!";
+            
+            let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
+            let mut select_display: String;
+            loop {
+                raw_mode
+                    .disable()
+                    .context("failed to disable raw mode for rendering")?;
+
+                print_palette(palette, current_title).context("failed to clear screen during glyph input")?;
+                select_display = match palette {
+                    Palette::Full(_) => formatc!("&l&o&nFull&r, Light, Dark"),
+                    Palette::Light(_) => formatc!("Full, &l&o&nLight&r, Dark"),
+                    Palette::Dark(_) => formatc!("Full, Light, &l&o&nDark")
+                };
+                println!("\n> {}", select_display);
+
+                raw_mode
+                    .enable()
+                    .context("failed to enable raw mode for key input")?;
+                let event = event::read().context("failed to read keyboard event")?;
+                let Event::Key(key) = event else {
+                    continue;
+                };
+                if !matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat) {
+                    continue;
+                }
+                match key.code {
+                    KeyCode::Enter => break,
+                    KeyCode::Left => palette.shift_type(false),
+                    KeyCode::Right => palette.shift_type(true),
+                    KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        raw_mode
+                            .disable()
+                            .context("failed to disable raw mode before interrupting")?;
+                        println!();
+                        return Err(anyhow::anyhow!("interrupted by user"));
+                    },
+                    _ => {}
+                }
+            }
+        };
+
+        let preview: &str = match palette.as_ref() {
+            Some(p) => match p {
+                Palette::Full(glyph) => 
+                    &formatc!("\n{}\n{}", to_palette(glyph, DARK_COLORS), 
+                                          to_palette(glyph, LIGHT_COLORS)),
+                Palette::Light(glyph) => 
+                    &formatc!("\n{}", to_palette(glyph, LIGHT_COLORS)),
+                Palette::Dark(glyph) => 
+                    &formatc!("\n{}", to_palette(glyph, DARK_COLORS))
+            },
+            None => "None"
+        };
 
         update_title(
             &mut title,
             &mut option_counter,
-            "Selected glyph",
-            &palette_glyph.as_ref().unwrap_or(&String::from("None")),
+            "Customized palette",
+            preview
         );
     }
+
+    let palette_glyph: Option<String> = if let Some(palette) = palette.as_ref() {
+        Some(palette.get_glyph().to_owned())
+    } else { None };
+    let palette_type: Option<String> = if let Some(palette) = palette.as_ref() {
+        Some(palette.to_string())
+    } else { None };
+
 
     //////////////////////////////
     // 8. Custom ASCII file
@@ -1392,8 +1493,8 @@ fn create_config(
         pride_month_disable: false,
         custom_ascii_path,
         custom_presets: None,
-        #[cfg(feature = "macchina")]
-        palette_glyph
+        palette_glyph,
+        palette_type
     };
     debug!(?config, "created config");
 
