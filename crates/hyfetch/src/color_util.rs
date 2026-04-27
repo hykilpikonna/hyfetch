@@ -410,6 +410,13 @@ macro_rules! printc {
     };
 }
 
+#[macro_export]
+macro_rules! formatc {
+    ($($arg:tt)*) => {
+        format!("{}", color(format!("{}&r", format!($($arg)*)), AnsiMode::Rgb).expect("failed to color message"));
+    };
+}
+
 /// Prints with color.
 pub fn printc<S>(msg: S, mode: AnsiMode) -> Result<()>
 where

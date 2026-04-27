@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::{Context as _, Result};
 use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, Display, EnumString};
 
 use crate::color_profile::ColorProfile;
 use crate::color_util::Lightness;
@@ -25,7 +26,9 @@ pub struct Config {
     pub custom_ascii_path: Option<String>,
     pub custom_presets: Option<HashMap<String, Vec<String>>>,
     #[cfg(feature = "macchina")]
-    pub palette_glyph: Option<String>
+    pub palette_glyph: Option<String>,
+    #[cfg(feature = "macchina")]
+    pub palette_type: Option<String>
 }
 
 impl Config {
@@ -188,3 +191,52 @@ impl PresetValue {
         }
     }
 }
+
+// handling macchina palettes
+#[derive(Clone, Debug, Display, EnumString, Deserialize, Serialize, AsRefStr)]
+pub enum Palette {
+    #[strum(to_string = "Full", ascii_case_insensitive)]
+    Full(String),
+    #[strum(to_string = "Light", ascii_case_insensitive)]
+    Light(String),
+    #[strum(to_string = "Dark", ascii_case_insensitive)]
+    Dark(String)
+}
+
+impl Palette {
+    pub fn get_glyph(&self) -> &String {
+        match self {
+            Palette::Full(s) => s,
+            Palette::Light(s) => s,
+            Palette::Dark(s) => s
+        }
+    }
+    pub fn get_glyph_mut(&mut self) -> &mut String {
+        match self {
+            Palette::Full(s) => s,
+            Palette::Light(s) => s,
+            Palette::Dark(s) => s
+        }
+    }
+    pub fn shift_type(&mut self, go_right: bool) {
+        *self = if go_right {
+            match self {
+                Palette::Full(s) => Palette::Light(s.to_owned()),
+                Palette::Light(s) => Palette::Dark(s.to_owned()),
+                Palette::Dark(s) => Palette::Full(s.to_owned())
+            }
+        } else {
+            match self {
+                Palette::Full(s) => Palette::Dark(s.to_owned()),
+                Palette::Light(s) => Palette::Full(s.to_owned()),
+                Palette::Dark(s) => Palette::Light(s.to_owned())
+            }
+        }
+    }
+}
+
+#[test]
+fn test() {
+    println!("{:?}", Palette::Full("".to_owned()))
+}
+

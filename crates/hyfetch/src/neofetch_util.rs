@@ -13,6 +13,9 @@ use indexmap::IndexMap;
 use itertools::Itertools as _;
 #[cfg(windows)]
 use anyhow::anyhow;
+#[cfg(feature = "macchina")]
+use crate::models::Palette;
+#[cfg(feature = "macchina")]
 #[cfg(windows)]
 use crate::utils::find_file;
 #[cfg(windows)]
@@ -275,14 +278,14 @@ where
 }
 
 #[tracing::instrument(level = "debug", skip(asc), fields(asc.w = asc.w, asc.h = asc.h))]
-pub fn run(asc: RecoloredAsciiArt, backend: Backend, args: Option<&Vec<String>>, palette_glyph: Option<&String>) -> Result<()> {
+pub fn run(asc: RecoloredAsciiArt, backend: Backend, args: Option<&Vec<String>>, palette: Option<Palette>) -> Result<()> {
     let asc = asc.lines.join("\n");
 
     match backend {
         Backend::Neofetch => run_neofetch(asc, args).context("failed to run neofetch")?,
         Backend::Fastfetch => run_fastfetch(asc, args).context("failed to run fastfetch")?,
         #[cfg(feature = "macchina")]
-        Backend::Macchina => run_macchina(asc, args, palette_glyph).context("failed to run macchina")?,
+        Backend::Macchina => run_macchina(asc, args, palette).context("failed to run macchina")?,
     }
 
     Ok(())
@@ -666,7 +669,7 @@ fn run_fastfetch(asc: String, args: Option<&Vec<String>>) -> Result<()> {
 /// Runs macchina with custom ascii art.
 #[cfg(feature = "macchina")]
 #[tracing::instrument(level = "debug", skip(asc))]
-fn run_macchina(asc: String, args: Option<&Vec<String>>, palette_glyph: Option<&String>) -> Result<()> {
+fn run_macchina(asc: String, args: Option<&Vec<String>>, palette: Option<Palette>) -> Result<()> {
     // Write ascii art to temp file
     let asc_file_path = {
         let mut temp_file = tempfile::Builder::new()
@@ -697,9 +700,10 @@ fn run_macchina(asc: String, args: Option<&Vec<String>>, palette_glyph: Option<&
                 "path",
                 &*asc_file_path.to_string_lossy(),
             )]));
-            if let Some(palette_glyph) = palette_glyph {
+            if let Some(p) = palette {
                 doc["palette"] = Item::Table(Table::from_iter([
-                    ("glyph", value(palette_glyph)),
+                    ("type", value(p.to_string())),
+                    ("glyph", value(p.get_glyph())),
                     ("visible", value(true))
                 ]))
             }
