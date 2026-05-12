@@ -278,6 +278,7 @@ where
 }
 
 #[tracing::instrument(level = "debug", skip(asc), fields(asc.w = asc.w, asc.h = asc.h))]
+#[cfg(feature = "macchina")]
 pub fn run(asc: RecoloredAsciiArt, backend: Backend, args: Option<&Vec<String>>, palette: Option<Palette>) -> Result<()> {
     let asc = asc.lines.join("\n");
 
@@ -286,6 +287,19 @@ pub fn run(asc: RecoloredAsciiArt, backend: Backend, args: Option<&Vec<String>>,
         Backend::Fastfetch => run_fastfetch(asc, args).context("failed to run fastfetch")?,
         #[cfg(feature = "macchina")]
         Backend::Macchina => run_macchina(asc, args, palette).context("failed to run macchina")?,
+    }
+
+    Ok(())
+}
+
+#[tracing::instrument(level = "debug", skip(asc), fields(asc.w = asc.w, asc.h = asc.h))]
+#[cfg(not(feature = "macchina"))]
+pub fn run(asc: RecoloredAsciiArt, backend: Backend, args: Option<&Vec<String>>, _palette: Option<&String>) -> Result<()> {
+    let asc = asc.lines.join("\n");
+
+    match backend {
+        Backend::Neofetch => run_neofetch(asc, args).context("failed to run neofetch")?,
+        Backend::Fastfetch => run_fastfetch(asc, args).context("failed to run fastfetch")?,
     }
 
     Ok(())

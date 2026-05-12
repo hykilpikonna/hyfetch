@@ -8,6 +8,7 @@ use std::iter;
 use std::iter::zip;
 use std::num::NonZeroU8;
 use std::path::{Path, PathBuf};
+#[cfg(feature = "macchina")]
 use std::str::FromStr;
 
 use aho_corasick::AhoCorasick;
@@ -25,7 +26,9 @@ use hyfetch::color_util::{
     NeofetchAsciiIndexedColor, PresetIndexedColor, Theme as _, ToAnsiString as _,
 };
 use hyfetch::distros::Distro;
-use hyfetch::models::{Config, Palette, PresetValue, build_hex_color_profile};
+#[cfg(feature = "macchina")]
+use hyfetch::models::Palette;
+use hyfetch::models::{Config, PresetValue, build_hex_color_profile};
 #[cfg(feature = "macchina")]
 use hyfetch::neofetch_util::macchina_path;
 use hyfetch::neofetch_util::{self, add_pkg_path, fastfetch_path, get_distro_ascii, get_distro_name, literal_input, ColorAlignment, NEOFETCH_COLORS_AC, NEOFETCH_COLOR_PATTERNS, TEST_ASCII};
@@ -243,7 +246,6 @@ fn main() -> Result<()> {
         .to_recolored(&color_align, &color_profile, color_mode, theme)
         .context("failed to recolor ascii")?;
     neofetch_util::run(asc, backend, args, palette)?;
-    
 
     if options.ask_exit {
         input(Some("Press enter to exit...")).context("failed to read input")?;
@@ -1252,18 +1254,20 @@ fn create_config(
     //////////////////////////////
     // 7.5. If using macchina, ask for custom palette glyph
 
-    let mut palette: Option<Palette> = Some(Palette::Full("".to_owned()));
+    #[cfg(feature = "macchina")]
+    let mut palette: Option<Palette> = None;
 
     #[cfg(feature = "macchina")]
     if backend == Backend::Macchina {
         use hyfetch::formatc;
 
+        palette = Some(Palette::Full("".to_owned()));
         let mut current_title = "Create a glyph for macchina (leave empty for None):";
 
         clear_screen(Some(&title), color_mode, debug_mode)
                 .context("failed to clear screen")?;
         print_title_prompt(option_counter, current_title);
-        
+
         const DARK_COLORS: [&str; 8] = ["&0","&4","&2","&6","&1","&5","&3","&8"];
         const LIGHT_COLORS: [&str; 8] = ["&8","&c","&a","&e","&9","&d","&b","&f"];
 
@@ -1278,14 +1282,14 @@ fn create_config(
             clear_screen(Some(&title), color_mode, debug_mode)
                 .context("failed to clear screen")?;
             print_title_prompt(option_counter, current_title);
-            
+
             match palette {
-                Palette::Full(glyph) => 
-                    printc!("Preview:\n{}\n{}\n", to_palette(glyph, DARK_COLORS), 
+                Palette::Full(glyph) =>
+                    printc!("Preview:\n{}\n{}\n", to_palette(glyph, DARK_COLORS),
                                                 to_palette(glyph, LIGHT_COLORS)),
-                Palette::Light(glyph) => 
+                Palette::Light(glyph) =>
                     printc!("Preview:\n{}\n\n", to_palette(glyph, LIGHT_COLORS)),
-                Palette::Dark(glyph) => 
+                Palette::Dark(glyph) =>
                     printc!("Preview:\n{}\n\n", to_palette(glyph, DARK_COLORS))
             }
             print!("> {}", palette.get_glyph());
@@ -1314,7 +1318,7 @@ fn create_config(
 
             match key.code {
                 KeyCode::Enter => {
-                    break; 
+                    break;
                 },
                 KeyCode::Backspace => {
                     palette
@@ -1358,10 +1362,10 @@ fn create_config(
         if palette.as_ref().unwrap().get_glyph().is_empty() {
             palette = None;
         }
-        
+
         if let Some(palette) = palette.as_mut() {
             current_title = "Pick your palette type!";
-            
+
             let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
             let mut select_display: String;
             loop {
@@ -1405,12 +1409,12 @@ fn create_config(
 
         let preview: &str = match palette.as_ref() {
             Some(p) => match p {
-                Palette::Full(glyph) => 
-                    &formatc!("\n{}\n{}", to_palette(glyph, DARK_COLORS), 
+                Palette::Full(glyph) =>
+                    &formatc!("\n{}\n{}", to_palette(glyph, DARK_COLORS),
                                           to_palette(glyph, LIGHT_COLORS)),
-                Palette::Light(glyph) => 
+                Palette::Light(glyph) =>
                     &formatc!("\n{}", to_palette(glyph, LIGHT_COLORS)),
-                Palette::Dark(glyph) => 
+                Palette::Dark(glyph) =>
                     &formatc!("\n{}", to_palette(glyph, DARK_COLORS))
             },
             None => "None"
@@ -1424,9 +1428,11 @@ fn create_config(
         );
     }
 
+    #[cfg(feature = "macchina")]
     let palette_glyph: Option<String> = if let Some(palette) = palette.as_ref() {
         Some(palette.get_glyph().to_owned())
     } else { None };
+    #[cfg(feature = "macchina")]
     let palette_type: Option<String> = if let Some(palette) = palette.as_ref() {
         Some(palette.to_string())
     } else { None };
@@ -1493,8 +1499,10 @@ fn create_config(
         pride_month_disable: false,
         custom_ascii_path,
         custom_presets: None,
+        #[cfg(feature = "macchina")]
         palette_glyph,
-        palette_type
+        #[cfg(feature = "macchina")]
+        palette_type,
     };
     debug!(?config, "created config");
 
