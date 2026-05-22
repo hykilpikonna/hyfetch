@@ -5556,8 +5556,11 @@ strip_escape_codes() {
 }
 
 print_ascii() {
+    local ascii_from_file="off"
+
     if [[ -f "$image_source" && ! "$image_source" =~ (png|jpg|jpeg|jpe|svg|gif) ]]; then
         ascii_data="$(< "$image_source")"
+        ascii_from_file="on"
     elif [[ "$image_source" == "ascii" || $image_source == auto ]]; then
         :
     else
@@ -5586,7 +5589,7 @@ print_ascii() {
     fi
 
     # Fallback if file not found.
-    ((lines==1)) && {
+    [[ "$ascii_from_file" != "on" ]] && ((lines==1)) && {
         lines=
         ascii_len=
         image_source=auto
