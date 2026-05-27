@@ -1252,191 +1252,10 @@ fn create_config(
     );
 
     //////////////////////////////
-    // 7.5. If using macchina, ask for custom palette glyph
+    // 7.5. Prepare macchina advanced options
 
     #[cfg(feature = "macchina")]
     let mut palette: Option<Palette> = None;
-
-    #[cfg(feature = "macchina")]
-    if backend == Backend::Macchina {
-        use hyfetch::formatc;
-
-        palette = Some(Palette::Full("".to_owned()));
-        let mut current_title = "Create a glyph for macchina (leave empty for None):";
-
-        clear_screen(Some(&title), color_mode, debug_mode)
-                .context("failed to clear screen")?;
-        print_title_prompt(option_counter, current_title);
-
-        const DARK_COLORS: [&str; 8] = ["&0","&4","&2","&6","&1","&5","&3","&8"];
-        const LIGHT_COLORS: [&str; 8] = ["&8","&c","&a","&e","&9","&d","&b","&f"];
-
-        let to_palette = |glyph: &str, colors: [&str; 8]| -> String {
-            colors
-                .into_iter()
-                .map(|s| s.to_owned() + glyph + "&r" )
-                .collect()
-        };
-
-        let print_palette = |palette: &mut Palette, current_title: &str| -> Result<()> {
-            clear_screen(Some(&title), color_mode, debug_mode)
-                .context("failed to clear screen")?;
-            print_title_prompt(option_counter, current_title);
-
-            match palette {
-                Palette::Full(glyph) =>
-                    printc!("Preview:\n{}\n{}\n", to_palette(glyph, DARK_COLORS),
-                                                to_palette(glyph, LIGHT_COLORS)),
-                Palette::Light(glyph) =>
-                    printc!("Preview:\n{}\n\n", to_palette(glyph, LIGHT_COLORS)),
-                Palette::Dark(glyph) =>
-                    printc!("Preview:\n{}\n\n", to_palette(glyph, DARK_COLORS))
-            }
-            print!("> {}", palette.get_glyph());
-            io::stdout().flush().context("failed to flush preset prompt")?;
-            Ok(())
-        };
-
-        let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
-        loop {
-            raw_mode
-                .disable()
-                .context("failed to disable raw mode for rendering")?;
-
-            print_palette(palette.as_mut().unwrap(), current_title).context("failed to print palette during glyph input")?;
-
-            raw_mode
-                .enable()
-                .context("failed to enable raw mode for key input")?;
-            let event = event::read().context("failed to read keyboard event")?;
-            let Event::Key(key) = event else {
-                continue;
-            };
-            if !matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat) {
-                continue;
-            }
-
-            match key.code {
-                KeyCode::Enter => {
-                    break;
-                },
-                KeyCode::Backspace => {
-                    palette
-                        .as_mut()
-                        .unwrap()
-                        .get_glyph_mut()
-                        .pop();
-                },
-                KeyCode::Esc => {
-                    palette
-                        .as_mut()
-                        .unwrap()
-                        .get_glyph_mut()
-                        .clear();
-                },
-                KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    raw_mode
-                        .disable()
-                        .context("failed to disable raw mode before interrupting")?;
-                    println!();
-                    return Err(anyhow::anyhow!("interrupted by user"));
-                },
-                KeyCode::Char(c)
-                    if !key.modifiers.contains(KeyModifiers::CONTROL)
-                        && !key.modifiers.contains(KeyModifiers::ALT) =>
-                {
-                    palette
-                        .as_mut()
-                        .unwrap()
-                        .get_glyph_mut()
-                        .push(c);
-                },
-                _ => {},
-            }
-        }
-        raw_mode
-            .disable()
-            .context("failed to disable raw mode after entering glyph")?;
-        drop(raw_mode);
-
-        if palette.as_ref().unwrap().get_glyph().is_empty() {
-            palette = None;
-        }
-
-        if let Some(palette) = palette.as_mut() {
-            current_title = "Pick your palette type!";
-
-            let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
-            let mut select_display: String;
-            loop {
-                raw_mode
-                    .disable()
-                    .context("failed to disable raw mode for rendering")?;
-
-                print_palette(palette, current_title).context("failed to clear screen during glyph input")?;
-                select_display = match palette {
-                    Palette::Full(_) => formatc!("&l&o&nFull&r, Light, Dark"),
-                    Palette::Light(_) => formatc!("Full, &l&o&nLight&r, Dark"),
-                    Palette::Dark(_) => formatc!("Full, Light, &l&o&nDark")
-                };
-                println!("\n> {}", select_display);
-
-                raw_mode
-                    .enable()
-                    .context("failed to enable raw mode for key input")?;
-                let event = event::read().context("failed to read keyboard event")?;
-                let Event::Key(key) = event else {
-                    continue;
-                };
-                if !matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat) {
-                    continue;
-                }
-                match key.code {
-                    KeyCode::Enter => break,
-                    KeyCode::Left => palette.shift_type(false),
-                    KeyCode::Right => palette.shift_type(true),
-                    KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        raw_mode
-                            .disable()
-                            .context("failed to disable raw mode before interrupting")?;
-                        println!();
-                        return Err(anyhow::anyhow!("interrupted by user"));
-                    },
-                    _ => {}
-                }
-            }
-        };
-
-        let preview: &str = match palette.as_ref() {
-            Some(p) => match p {
-                Palette::Full(glyph) =>
-                    &formatc!("\n{}\n{}", to_palette(glyph, DARK_COLORS),
-                                          to_palette(glyph, LIGHT_COLORS)),
-                Palette::Light(glyph) =>
-                    &formatc!("\n{}", to_palette(glyph, LIGHT_COLORS)),
-                Palette::Dark(glyph) =>
-                    &formatc!("\n{}", to_palette(glyph, DARK_COLORS))
-            },
-            None => "None"
-        };
-
-        update_title(
-            &mut title,
-            &mut option_counter,
-            "Customized palette",
-            preview
-        );
-    }
-
-    #[cfg(feature = "macchina")]
-    let palette_glyph: Option<String> = if let Some(palette) = palette.as_ref() {
-        Some(palette.get_glyph().to_owned())
-    } else { None };
-    #[cfg(feature = "macchina")]
-    let palette_type: Option<String> = if let Some(palette) = palette.as_ref() {
-        Some(palette.to_string())
-    } else { None };
-
 
     //////////////////////////////
     // 8. Custom ASCII file
@@ -1483,6 +1302,193 @@ fn create_config(
             }
         }
     }
+
+    //////////////////////////////
+    // 9. Macchina advanced options
+
+    #[cfg(feature = "macchina")]
+    if backend == Backend::Macchina {
+        clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
+        print_title_prompt(option_counter, "Edit advanced options for macchina?");
+        let choice = literal_input("Your choice?", &["y", "n"], "n", true, color_mode)
+            .context("failed to ask for macchina advanced options input")?;
+
+        if choice == "y" {
+            use hyfetch::formatc;
+
+            palette = Some(Palette::Full("".to_owned()));
+            let mut current_title = "Create a glyph for macchina (leave empty for None):";
+
+            clear_screen(Some(&title), color_mode, debug_mode)
+                    .context("failed to clear screen")?;
+            print_title_prompt(option_counter, current_title);
+
+            const DARK_COLORS: [&str; 8] = ["&0","&4","&2","&6","&1","&5","&3","&8"];
+            const LIGHT_COLORS: [&str; 8] = ["&8","&c","&a","&e","&9","&d","&b","&f"];
+
+            let to_palette = |glyph: &str, colors: [&str; 8]| -> String {
+                colors
+                    .into_iter()
+                    .map(|s| s.to_owned() + glyph + "&r" )
+                    .collect()
+            };
+
+            let print_palette = |palette: &mut Palette, current_title: &str| -> Result<()> {
+                clear_screen(Some(&title), color_mode, debug_mode)
+                    .context("failed to clear screen")?;
+                print_title_prompt(option_counter, current_title);
+                println!("Useful characters: █▓▒░▄‗");
+
+                match palette {
+                    Palette::Full(glyph) =>
+                        printc!("Preview:\n{}\n{}\n", to_palette(glyph, DARK_COLORS),
+                                                    to_palette(glyph, LIGHT_COLORS)),
+                    Palette::Light(glyph) =>
+                        printc!("Preview:\n{}\n\n", to_palette(glyph, LIGHT_COLORS)),
+                    Palette::Dark(glyph) =>
+                        printc!("Preview:\n{}\n\n", to_palette(glyph, DARK_COLORS))
+                }
+                print!("> {}", palette.get_glyph());
+                io::stdout().flush().context("failed to flush preset prompt")?;
+                Ok(())
+            };
+
+            let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
+            loop {
+                raw_mode
+                    .disable()
+                    .context("failed to disable raw mode for rendering")?;
+
+                print_palette(palette.as_mut().unwrap(), current_title).context("failed to print palette during glyph input")?;
+
+                raw_mode
+                    .enable()
+                    .context("failed to enable raw mode for key input")?;
+                let event = event::read().context("failed to read keyboard event")?;
+                let Event::Key(key) = event else {
+                    continue;
+                };
+                if !matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat) {
+                    continue;
+                }
+
+                match key.code {
+                    KeyCode::Enter => {
+                        break;
+                    },
+                    KeyCode::Backspace => {
+                        palette
+                            .as_mut()
+                            .unwrap()
+                            .get_glyph_mut()
+                            .pop();
+                    },
+                    KeyCode::Esc => {
+                        palette
+                            .as_mut()
+                            .unwrap()
+                            .get_glyph_mut()
+                            .clear();
+                    },
+                    KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        raw_mode
+                            .disable()
+                            .context("failed to disable raw mode before interrupting")?;
+                        println!();
+                        return Err(anyhow::anyhow!("interrupted by user"));
+                    },
+                    KeyCode::Char(c)
+                        if !key.modifiers.contains(KeyModifiers::CONTROL)
+                            && !key.modifiers.contains(KeyModifiers::ALT) =>
+                    {
+                        palette
+                            .as_mut()
+                            .unwrap()
+                            .get_glyph_mut()
+                            .push(c);
+                    },
+                    _ => {},
+                }
+            }
+            raw_mode
+                .disable()
+                .context("failed to disable raw mode after entering glyph")?;
+            drop(raw_mode);
+
+            if palette.as_ref().unwrap().get_glyph().is_empty() {
+                palette = None;
+            }
+
+            if let Some(palette) = palette.as_mut() {
+                current_title = "Pick your palette type!";
+
+                let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
+                let mut select_display: String;
+                loop {
+                    raw_mode
+                        .disable()
+                        .context("failed to disable raw mode for rendering")?;
+
+                    print_palette(palette, current_title).context("failed to clear screen during glyph input")?;
+                    select_display = match palette {
+                        Palette::Full(_) => formatc!("&l&o&nFull&r, Light, Dark"),
+                        Palette::Light(_) => formatc!("Full, &l&o&nLight&r, Dark"),
+                        Palette::Dark(_) => formatc!("Full, Light, &l&o&nDark")
+                    };
+                    println!("\n> {}", select_display);
+
+                    raw_mode
+                        .enable()
+                        .context("failed to enable raw mode for key input")?;
+                    let event = event::read().context("failed to read keyboard event")?;
+                    let Event::Key(key) = event else {
+                        continue;
+                    };
+                    if !matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat) {
+                        continue;
+                    }
+                    match key.code {
+                        KeyCode::Enter => break,
+                        KeyCode::Left => palette.shift_type(false),
+                        KeyCode::Right => palette.shift_type(true),
+                        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                            raw_mode
+                                .disable()
+                                .context("failed to disable raw mode before interrupting")?;
+                            println!();
+                            return Err(anyhow::anyhow!("interrupted by user"));
+                        },
+                        _ => {}
+                    }
+                }
+            };
+
+            let preview = match palette.as_ref() {
+                Some(p) => match p {
+                    Palette::Full(glyph) =>
+                        formatc!("\n{}\n{}", to_palette(glyph, DARK_COLORS),
+                                              to_palette(glyph, LIGHT_COLORS)),
+                    Palette::Light(glyph) =>
+                        formatc!("\n{}", to_palette(glyph, LIGHT_COLORS)),
+                    Palette::Dark(glyph) =>
+                        formatc!("\n{}", to_palette(glyph, DARK_COLORS))
+                },
+                None => "None".to_owned()
+            };
+
+            update_title(
+                &mut title,
+                &mut option_counter,
+                "Customized palette",
+                &preview
+            );
+        }
+    }
+
+    #[cfg(feature = "macchina")]
+    let palette_glyph: Option<String> = palette.as_ref().map(|palette| palette.get_glyph().to_owned());
+    #[cfg(feature = "macchina")]
+    let palette_type: Option<String> = palette.as_ref().map(ToString::to_string);
 
     // Create config
     clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
