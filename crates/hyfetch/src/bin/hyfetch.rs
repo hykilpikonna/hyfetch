@@ -1377,18 +1377,10 @@ fn create_config(
                         break;
                     },
                     KeyCode::Backspace => {
-                        palette
-                            .as_mut()
-                            .unwrap()
-                            .get_glyph_mut()
-                            .pop();
+                        palette.as_mut().unwrap().get_glyph_mut().pop();
                     },
                     KeyCode::Esc => {
-                        palette
-                            .as_mut()
-                            .unwrap()
-                            .get_glyph_mut()
-                            .clear();
+                        palette.as_mut().unwrap().get_glyph_mut().clear();
                     },
                     KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                         raw_mode
@@ -1401,11 +1393,7 @@ fn create_config(
                         if !key.modifiers.contains(KeyModifiers::CONTROL)
                             && !key.modifiers.contains(KeyModifiers::ALT) =>
                     {
-                        palette
-                            .as_mut()
-                            .unwrap()
-                            .get_glyph_mut()
-                            .push(c);
+                        palette.as_mut().unwrap().get_glyph_mut().push(c);
                     },
                     _ => {},
                 }
