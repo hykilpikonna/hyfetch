@@ -38,6 +38,11 @@
   },
   "aroace2": ["#000000", "#810081", "#A4A4A4", "#FFFFFF", "#A8D47A", "#3BA740"],
   "aroace3": ["#3BA740", "#A8D47A", "#FFFFFF", "#ABABAB", "#000000", "#A4A4A4", "#FFFFFF", "#810081"],
+  "demisexual": {
+    "colors": ["#000000", "#ffffff", "#6f0071", "#d3d3d3"],
+    "weights": [2, 3, 1, 3],
+    "comment": "sourced from https://commons.wikimedia.org/wiki/File:Demisexual_Pride_Flag.svg"
+  },
   "autosexual": ["#99D9EA", "#7F7F7F"],
   "intergender": {
     "colors": ["#900DC2", "#900DC2", "#FFE54F", "#900DC2", "#900DC2"],
