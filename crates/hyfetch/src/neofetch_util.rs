@@ -237,6 +237,26 @@ pub fn macchina_path() -> Result<Option<PathBuf>> {
     Ok(macchina_path)
 }
 
+#[cfg(feature = "macchina")]
+fn macchina_themes_path() -> Result<PathBuf> {
+    #[cfg(target_os = "macos")]
+    {
+        return Ok(PathBuf::from(
+            env::var_os("HOME").context("`HOME` env var is not set or invalid")?,
+        )
+        .join(".config")
+        .join("macchina")
+        .join("themes"));
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let project_dirs = directories::ProjectDirs::from("", "", "macchina")
+            .context("failed to get base dirs")?;
+        Ok(project_dirs.config_dir().join("themes"))
+    }
+}
+
 /// Gets the distro ascii of the current distro. Or if distro is specified, get
 /// the specific distro's ascii art instead.
 #[tracing::instrument(level = "debug")]
@@ -539,9 +559,8 @@ pub fn get_distro_name(backend: Backend) -> Result<String> {
 
             // Write macchina theme to temp file
             let theme_file_path = {
-                let project_dirs = directories::ProjectDirs::from("", "", "macchina")
-                    .context("failed to get base dirs")?;
-                let themes_path = project_dirs.config_dir().join("themes");
+                let themes_path =
+                    macchina_themes_path().context("failed to get macchina themes dir")?;
                 fs::create_dir_all(&themes_path).with_context(|| {
                     format!("failed to create macchina themes dir {themes_path:?}")
                 })?;
@@ -698,9 +717,7 @@ fn run_macchina(asc: String, args: Option<&Vec<String>>, palette: Option<Palette
 
     // Write macchina theme to temp file
     let theme_file_path = {
-        let project_dirs = directories::ProjectDirs::from("", "", "macchina")
-            .context("failed to get base dirs")?;
-        let themes_path = project_dirs.config_dir().join("themes");
+        let themes_path = macchina_themes_path().context("failed to get macchina themes dir")?;
         fs::create_dir_all(&themes_path)
             .with_context(|| format!("failed to create macchina themes dir {themes_path:?}"))?;
         let mut temp_file = tempfile::Builder::new()
