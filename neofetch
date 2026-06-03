@@ -150,7 +150,7 @@ distro_shorthand="off"
 # Show/Hide OS Architecture.
 # Show 'x86_64', 'x86' and etc in 'Distro:' output.
 #
-# Default: 'off'
+# Default: 'on'
 # Values:  'on', 'off'
 # Flag:    --os_arch
 #
@@ -181,7 +181,7 @@ uptime_shorthand="on"
 
 # Show memory percentage in output.
 #
-# Default: 'off'
+# Default: 'on'
 # Values:  'on', 'off'
 # Flag:    --memory_percent
 #
@@ -202,7 +202,7 @@ memory_report_available="off"
 
 # Change memory output unit.
 #
-# Default: 'mib'
+# Default: 'gib'
 # Values:  'kib', 'mib', 'gib', 'tib'
 # Flag:    --memory_unit
 #
@@ -224,7 +224,7 @@ mem_precision=2
 
 # Show/Hide Package Manager names.
 #
-# Default: 'tiny'
+# Default: 'on'
 # Values:  'on', 'tiny' 'off'
 # Flag:    --package_managers
 #
@@ -322,7 +322,7 @@ speed_type="bios_limit"
 
 # CPU speed shorthand
 #
-# Default: 'off'
+# Default: 'on'
 # Values: 'on', 'off'.
 # Flag:    --speed_shorthand
 # NOTE: This flag is not supported in systems with CPU speed less than 1 GHz
@@ -346,7 +346,7 @@ cpu_brand="on"
 # CPU Codename
 # Hide/Show CPU codename.
 #
-# Default: 'on'
+# Default: 'off'
 # Values:  'on', 'off'
 # Flag:    --cpu_codename
 # Supports: Linux with Intel x86 CPUs
@@ -448,7 +448,7 @@ gpu_type="all"
 
 
 # Display refresh rate next to each monitor
-# Default: 'off'
+# Default: 'on'
 # Values:  'on', 'off'
 # Flag:    --refresh_rate
 # Supports: Doesn't work on Windows.
