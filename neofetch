@@ -885,8 +885,9 @@ image_source="auto"
 # Kali, KaOS, KDE, Kibojoe, Kogaion, Korora, KrassOS, KSLinux, Kubuntu, LainOS, LangitKetujuh,
 # LaxerOS, LEDE, LibreELEC, Linspire, Linux, Linux Lite, Linux Mint, Linux Mint Old,
 # LinuxFromScratch, Live Raizo, LMDE, Lubuntu, Lunar, mac, MacaroniOS, Mageia, Magix, MagpieOS,
-# MainsailOS, Mandriva, Manjaro, MassOS, MatuusOS, Maui, Mauna, Meowix, Mer, Minix, MIRACLE LINUX,
-# MX, Namib, NekOS, Neptune, NetBSD, Netrunner, Nitrux, NixOS, nixos_colorful, Nobara, NomadBSD,
+# MainsailOS, Mandriva, Manjaro, MassOS, MatuusOS, Maui, Mauna, Meowix, Mer, MidOS, Minix,
+# MIRACLE LINUX, MX, Namib, NekOS, Neptune, NetBSD, Netrunner, Nitrux, NixOS, nixos_colorful,
+# Nobara, NomadBSD,
 # Nurunner, NuTyX, Obarun, OBRevenge, OmniOS, Open Source Media Center, OpenBSD, openEuler,
 # OpenIndiana, openKylin, openmamba, OpenMandriva, OpenSolaris, OpenStage, openSUSE, openSUSE
 # Leap, openSUSE Tumbleweed, openSUSE Tumbleweed-Slowroll, OPNsense, Oracle, orchid, OS Elbrus,
@@ -904,7 +905,7 @@ image_source="auto"
 # Void, VzLinux, wii-linux-ngx, Windows, Windows 10, Windows 11, Windows95, Wrt, Xenia, Xenia2,
 # XFerience, Xray_OS, Xubuntu, yiffOS, Zirconium, Zorin have ascii logos.
 
-# NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu, void have 'old' logo
+# NOTE: arch, dragonfly, Fedora, LangitKetujuh, MidOS, nixos, redhat, Ubuntu, void have 'old' logo
 # variants, use {distro}_old to use them.
 
 # NOTE: alpine, android, arch, arcolinux, artix, CalinixOS, centos, cleanjaro, crux, debian,
@@ -6753,8 +6754,8 @@ ASCII:
                                 Linux, Linux Lite, Linux Mint, Linux Mint Old, LinuxFromScratch,
                                 Live Raizo, LMDE, Lubuntu, Lunar, mac, MacaroniOS, Mageia, Magix,
                                 MagpieOS, MainsailOS, Mandriva, Manjaro, MassOS, MatuusOS, Maui,
-                                Mauna, Meowix, Mer, Minix, MIRACLE LINUX, MX, Namib, NekOS, Neptune,
-                                NetBSD, Netrunner, Nitrux, NixOS, nixos_colorful, Nobara, NomadBSD,
+                                Mauna, Meowix, Mer, MidOS, Minix, MIRACLE LINUX, MX, Namib, NekOS,
+                                Neptune, NetBSD, Netrunner, Nitrux, NixOS, nixos_colorful, Nobara, NomadBSD,
                                 Nurunner, NuTyX, Obarun, OBRevenge, OmniOS, Open Source Media
                                 Center, OpenBSD, openEuler, OpenIndiana, openKylin, openmamba,
                                 OpenMandriva, OpenSolaris, OpenStage, openSUSE, openSUSE Leap,
@@ -6779,8 +6780,8 @@ ASCII:
                                 Windows 11, Windows95, Wrt, Xenia, Xenia2, XFerience, Xray_OS,
                                 Xubuntu, yiffOS, Zirconium, Zorin have ascii logos.
 
-                                NOTE: arch, dragonfly, Fedora, LangitKetujuh, nixos, redhat, Ubuntu,
-                                void have 'old' logo variants, use {distro}_old to use them.
+                                NOTE: arch, dragonfly, Fedora, LangitKetujuh, MidOS, nixos, redhat,
+                                Ubuntu, void have 'old' logo variants, use {distro}_old to use them.
 
                                 NOTE: alpine, android, arch, arcolinux, artix, CalinixOS, centos,
                                 cleanjaro, crux, debian, dragonfly, elementary, endeavouros, fedora,
@@ -11916,6 +11917,58 @@ ${c2}   -sdhyo+:-`                -/syymm:
        ../-yNMMy--/::/-.sMMmos+.`
            -+oyhNsooo+omy/```
               `::ohdmds-`
+EOF
+        ;;
+
+        "MidOS_old"*)
+            set_colors 8 7
+            read -rd '' ascii_data <<'EOF'
+${c1}              .:=+*#%%@@@@@@%%#*+=:.
+          .=*%@@@@@@@@@@@@@@@@@@@@@@%*=:
+       .=%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%+.
+     :*@@@@@@@@@@@@@@@@@${c2}++${c1}%@@@@@@@@@@@@@@@@#-
+   .*@@@@@@@@@@@@@@@@@@%${c2}..${c1}#@@@@@@@@@@@@@@@@@@#.
+  -%@@@@@@@@@@@@@@@@@@@%${c2}..${c1}#@@@@@@@@@@@@@@@@@@@@-
+ -@@@@@@@@@@@@@@@@@@@@@%${c2}..${c1}#@@@@@@@@@@@@@@@@@@@@@=
+:@@@@@@@@@@@@@@@@@%%@@@%${c2}..${c1}#@@@@#@@@@@@@@@@@@@@@@@:
+*@@@@@@@@@@@@#${c2}*=:..${c1}*@@@%${c2}..${c1}#@@@#${c2}..:=+${c1}#@@@@@@@@@@@@*
+%@@@@@@@#+${c2}=:...-+${c1}#@@@@@%${c2}..${c1}#@@@@@#${c2}+=:..:-${c1}+#@@@@@@@%
+%@@@@@${c2}:..:=+-..-+${c1}#@@@@@%${c2}..${c1}#@@@@@%${c2}+-..-+=:..:${c1}@@@@@@
+*@@@@@${c2}*%${c1}@@@@@@%${c2}+-..${c1}#@@@%${c2}..${c1}#@@@%${c2}..-+${c1}#@@@@@@${c2}%*${c1}@@@@@*
+:@@@@@@@@@@@@@@@@@${c2}#%${c1}@@@%${c2}..${c1}#@@@${c2}%#${c1}@@@@@@@@@@@@@@@@@:
+ =@@@@@@@@@@@@@@@@@@@@@%${c2}..${c1}#@@@@@@@@@@@@@@@@@@@@@=
+  -@@@@@@@@@@@@@@@@@@@@%${c2}..${c1}#@@@@@@@@@@@@@@@@@@@@=
+   .*@@@@@@@@@@@@@@@@@@%${c2}..${c1}#@@@@@@@@@@@@@@@@@@#:
+     :*@@@@@@@@@@@@@@@@@${c2}==${c1}%@@@@@@@@@@@@@@@@#-.
+       .+%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%+:
+          :=*%@@@@@@@@@@@@@@@@@@@@@@%*=:.
+              .-=+*#%%@@@@@@%%#*+=-.
+EOF
+        ;;
+
+        "MidOS"*)
+            set_colors 8
+            read -rd '' ascii_data <<'EOF'
+${c1}             ▁▂▃▄▅▆▇▇████▇▇▆▅▄▃▂▁
+          ▃▅▇████████████████████▇▅▃
+       ▂▅████████████████████████████▅▁
+     ▗▟██████████████▛▀▀▜██████████████▙▖
+   ▗▟████████████████▌  ▐████████████████▙▖
+  ▗██████████████████▌  ▐██████████████████▖
+ ▗███████████████████▌  ▐███████████████████▖
+▕███████████████▀▘ ██▌  ▐██ ▝▀███████████████▏
+▐██████████▛▀▀    ▂██▌  ▐██▂    ▀▀▜██████████▌
+███████▀▀     ▁▄▆████▌  ▐████▆▄▁     ▀▀███████
+█████    ▂▄▂  ▔▀▜████▌  ▐████▛▀▔  ▂▄▂    █████
+▐████▄▄▆█████▄▂  ▔▀██▌  ▐██▀▔  ▂▄█████▆▄▄████▌
+▕██████████████▇▄▂ ██▌  ▐██ ▂▄▇██████████████▏
+ ▝███████████████████▌  ▐███████████████████▘
+  ▝██████████████████▌  ▐██████████████████▘
+   ▝▜████████████████▌  ▐████████████████▛▘
+     ▝▜██████████████▙▄▄▟██████████████▛▘
+       ▔▀▜██████████████████████████▛▀▔
+          ▔▀▜████████████████████▛▀▔
+              ▔▔▀▀▀▜██████▛▀▀▀▔▔
 EOF
         ;;
 

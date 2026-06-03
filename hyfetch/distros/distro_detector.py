@@ -18,7 +18,13 @@ def get_distros() -> list[AsciiArt]:
     if not distro_dir.exists():
         return []
         
-    for f in sorted(distro_dir.glob('*.ascii')):
+    # Match more specific variants such as *_old and *_small before their
+    # broader base distro patterns.
+    for f in sorted(
+        distro_dir.glob('*.ascii'),
+        key=lambda p: (len(str(p)), str(p)),
+        reverse=True,
+    ):
         try:
             content = f.read_text('utf-8')
             header_line, art = content.split('\n', 1)
