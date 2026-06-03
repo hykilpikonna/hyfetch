@@ -605,6 +605,7 @@ disk_percent="on"
 # mopidy
 # mpd
 # muine
+# musikcube
 # netease-cloud-music
 # olivia
 # playerctl
@@ -3989,6 +3990,7 @@ get_song() {
         "mopidy"
         "mpd"
         "muine"
+        "musikcube"
         "netease-cloud-music"
         "olivia"
         "plasma-browser-integration"
@@ -4028,6 +4030,18 @@ get_song() {
             awk -F '"' 'BEGIN {RS=" entry"}; /"xesam:artist"/ {a = $4} /"xesam:album"/ {b = $4}
                         /"xesam:title"/ {t = $4} END {print a " \n" b " \n" t}'
         )"
+    }
+
+    get_song_mpris() {
+        local dbus_name
+
+        dbus_name="$(dbus-send --print-reply --dest=org.freedesktop.DBus \
+            /org/freedesktop/DBus org.freedesktop.DBus.ListNames 2>/dev/null |\
+            awk -F '"' -v player="$1" '$2 ~ "^org\\.mpris\\.MediaPlayer2\\." player {print $2; exit}')"
+
+        [[ "$dbus_name" ]] || return
+        get_song_dbus "${dbus_name#org.mpris.MediaPlayer2.}"
+        [[ "$song" =~ [^[:space:]] ]]
     }
 
     case ${player/*\/} in
@@ -4074,6 +4088,8 @@ get_song() {
         "xmms2d"*)
             song="$(xmms2 current -f "\${artist}"$' \n'"\${album}"$' \n'"\${title}")"
         ;;
+
+        "musikcube"*) get_song_mpris "musikcube" || return ;;
 
         "cmus"*)
             # NOTE: cmus >= 2.8.0 supports mpris2
