@@ -888,9 +888,10 @@ image_source="auto"
 # MainsailOS, Mandriva, Manjaro, MassOS, MatuusOS, Maui, Mauna, Meowix, Mer, Minix, MIRACLE LINUX,
 # MX, Namib, NekOS, Neptune, NetBSD, Netrunner, Nitrux, NixOS, nixos_colorful, Nobara, NomadBSD,
 # Nurunner, NuTyX, Obarun, OBRevenge, OmniOS, Open Source Media Center, OpenBSD, openEuler,
-# OpenIndiana, openKylin, openmamba, OpenMandriva, OpenStage, openSUSE, openSUSE Leap, openSUSE
-# Tumbleweed, openSUSE Tumbleweed-Slowroll, OPNsense, Oracle, orchid, OS Elbrus, PacBSD, Panwah,
-# Parabola, parch, Pardus, Parrot, Parsix, PCBSD, PCLinuxOS, pearOS, Pengwin, Pentoo, Peppermint,
+# OpenIndiana, openKylin, openmamba, OpenMandriva, OpenSolaris, OpenStage, openSUSE, openSUSE
+# Leap, openSUSE Tumbleweed, openSUSE Tumbleweed-Slowroll, OPNsense, Oracle, orchid, OS Elbrus,
+# PacBSD, Panwah, Parabola, parch, Pardus, Parrot, Parsix, PCBSD, PCLinuxOS, pearOS, Pengwin,
+# Pentoo, Peppermint,
 # Peropesis, phyOS, PikaOS, Pisi, PNM Linux, Pop!_OS, Porteus, PostMarketOS, Profelis SambaBOX,
 # Proxmox, PuffOS, Puppy, PureOS, Q4OS, QNX, Qubes, Qubyt, Quibian, Radix, Raspbian, ravynOS, Reborn
 # OS, Red Star, Redcore, Redhat, Refracted Devuan, Regata, Regolith, RhaymOS, Rhino Linux, rocky,
@@ -6756,10 +6757,11 @@ ASCII:
                                 NetBSD, Netrunner, Nitrux, NixOS, nixos_colorful, Nobara, NomadBSD,
                                 Nurunner, NuTyX, Obarun, OBRevenge, OmniOS, Open Source Media
                                 Center, OpenBSD, openEuler, OpenIndiana, openKylin, openmamba,
-                                OpenMandriva, OpenStage, openSUSE, openSUSE Leap, openSUSE
-                                Tumbleweed, openSUSE Tumbleweed-Slowroll, OPNsense, Oracle, orchid,
-                                OS Elbrus, PacBSD, Panwah, Parabola, parch, Pardus, Parrot, Parsix,
-                                PCBSD, PCLinuxOS, pearOS, Pengwin, Pentoo, Peppermint, Peropesis,
+                                OpenMandriva, OpenSolaris, OpenStage, openSUSE, openSUSE Leap,
+                                openSUSE Tumbleweed, openSUSE Tumbleweed-Slowroll, OPNsense,
+                                Oracle, orchid, OS Elbrus, PacBSD, Panwah, Parabola, parch, Pardus,
+                                Parrot, Parsix, PCBSD, PCLinuxOS, pearOS, Pengwin, Pentoo,
+                                Peppermint, Peropesis,
                                 phyOS, PikaOS, Pisi, PNM Linux, Pop!_OS, Porteus, PostMarketOS,
                                 Profelis SambaBOX, Proxmox, PuffOS, Puppy, PureOS, Q4OS, QNX, Qubes,
                                 Qubyt, Quibian, Radix, Raspbian, ravynOS, Reborn OS, Red Star,
@@ -14634,6 +14636,32 @@ ${c1}                 `-     `
   ``   ./:`                .: `..`.-
 ``./+/:-                     -+++:-
     -/+`                      :.
+EOF
+        ;;
+
+        "OpenSolaris"*)
+            set_colors 4 6 2 7
+            read -rd '' ascii_data <<'EOF'
+${c4}                      .=#@@@@#+:
+${c3}        :====-.     ${c4}.*@@@@@@@@@@*:
+${c3}      :#%=-:-+%*:   ${c4}#@@@#:..:+@@@@.
+${c3}     :@*      .#@: ${c4}:@@@@.     #@@@=
+${c3}     +@-       +@=  ${c4}%@@@*.  .=@@@@:
+${c3}     .#%:     -%%.  ${c4}.#@@@@@@@@@@#:
+${c3}      .=#%**#%#- ${c2}...  ${c4}:+#@@@@%*-   ${c2}:====-.
+${c3}         ....  ${c2}=%@@@%-           -#@@@@@@@*.
+${c1}   :=*###+=:  ${c2}.@@@@@@@  ${c1}.----.  ${c2}=@@@@@@@@@@#
+${c1} :#@*=-:-=#@#- ${c2}+@@@@%= ${c1}=@@@@@@= ${c2}*@@@@@@@@@@@
+${c1}-@%:       -%@- ${c2}.:-:.  ${c1}@@@@@@@@ ${c2}:@@@@@@@@@@=
+${c1}%@+         -@*  ${c4}=*#*- ${c1}*@@@@@@*  ${c2}.=#@@@@@*-
+${c1}%@+         =@* ${c4}=@@@@@: ${c1}:+**+-      ${c2}....
+${c1}.%@+.     :*@%. ${c4}.*@@%+     ${c3}:=*%%%#+-
+${c1} .=%@%#*#%@%=.  ${c2}....     ${c3}.*@@@@%@@@@#.
+${c1}    .:---:.  ${c2}:*%@@@@#-   ${c3}+@@@+. .-%@@*
+${c2}            -@@@@@@@@@#. ${c3}*@@@=   :%@@*
+${c2}            *@@@@@@@@@@: ${c3}.#@@@%#%@@@%.
+${c2}            :@@@@@@@@@*   ${c3}.-*%@@@%*=.
+${c2}             .+#@@@%*:
 EOF
         ;;
 
