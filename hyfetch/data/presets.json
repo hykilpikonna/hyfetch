@@ -277,5 +277,9 @@
   "queervillain": {
     "colors": ["#662D91", "#8DC63F", "#F7941D", "#EC008C"],
     "comment": "Sourced from https://distressedegg.fun/qvp"
+  },
+  "disability": {
+    "colors": ["#595959", "#CE717F", "#EFDD77", "#E8E8E8", "#7AC3E0", "#3CB07D","#595959"],
+    "comment": "Colorpicked from https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Visually_Safe_Disability_Pride_Flag.svg/1280px-Visually_Safe_Disability_Pride_Flag.svg.png"
   }
 }
