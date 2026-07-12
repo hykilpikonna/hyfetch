@@ -281,5 +281,8 @@
   "disability": {
     "colors": ["#595959", "#CE717F", "#EFDD77", "#E8E8E8", "#7AC3E0", "#3CB07D","#595959"],
     "comment": "Colorpicked from https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Visually_Safe_Disability_Pride_Flag.svg/1280px-Visually_Safe_Disability_Pride_Flag.svg.png"
+  },
+  "unlabeled": {
+    "colors": ["#E7F9E4", "#FFFFFF", "#DEF0F7", "#FAE2C3"]
   }
 }
