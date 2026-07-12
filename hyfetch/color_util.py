@@ -201,13 +201,24 @@ class RGB:
     def to_ansi(self, mode: AnsiMode | None = None, foreground: bool = True) -> str:
         if not mode:
             mode = GLOBAL_CFG.color_mode
+
+        # If the mode is none, raise an error
+        if mode is None:
+            raise ValueError("GLOBAL_CFG.color_mode is not set")
+
         if mode == 'rgb':
             return self.to_ansi_rgb(foreground)
         if mode == '8bit':
             return self.to_ansi_8bit(foreground)
-        # 'ansi' (16-color) is not yet implemented; fall back to 8bit which always works.
-        # 'default' and any unknown mode also fall through here as a safe degradation.
-        return self.to_ansi_8bit(foreground)
+        if mode == 'default':
+            # treat 'default' as 8bit (256 colors)
+            return self.to_ansi_8bit(foreground)
+        if mode == 'ansi':
+            # 16-color 'ansi' mode is not implemented yet.
+            raise NotImplementedError("'ansi' (16-color) mode is not implemented")
+
+        # Unknown / misspelled mode in config
+        raise ValueError(f"Unknown color mode: {mode!r}")
 
     def lighten(self, multiplier: float) -> 'RGB':
         """
