@@ -22,8 +22,8 @@ def unix_detect_ansi_mode() -> AnsiMode | None:
     if hasattr(sys.stdout, 'isatty') and not sys.stdout.isatty():
         return 'ansi'
 
-    term = os.environ.get('TERM')
-    color_term = os.environ.get('COLORTERM')
+    term = os.environ.get('TERM') or ''
+    color_term = os.environ.get('COLORTERM') or ''
 
     if color_term == 'truecolor' or color_term == '24bit':
         if term.startswith('screen') and os.environ.get('TERM_PROGRAM') != 'tmux':
@@ -61,12 +61,16 @@ def windows_detect_ansi_mode() -> AnsiMode | None:
     if os.environ.get("ConEmuANSI") == "ON":
         return 'rgb'
 
-    release, _, build = map(int, platform.version().split('.'))
+    try:
+        release, _, build = map(int, platform.version().split('.'))
+    except (ValueError, TypeError):
+        # If the version string is unparseable, assume a modern Windows with full color support.
+        return 'rgb'
     if build < 10586 or release < 10:
         # No ANSI support before Windows 10 build 10586.
         if os.environ.get('ANSICON'):
-            conv = os.environ.get('ANSICON_VER')
-            if int(conv) < 181:
+            conv = os.environ.get('ANSICON_VER') or ''
+            if conv.isdigit() and int(conv) < 181:
                 return 'ansi'
             return '8bit'
         return 'ansi'
@@ -95,7 +99,7 @@ def unix_read_osc(seq: int) -> str:
 
     # screen/tmux can't support OSC, because they can be connected to multiple
     # terminals concurrently.
-    term = os.environ.get('TERM')
+    term = os.environ.get('TERM') or ''
     if term.startswith("screen") or term.startswith("tmux"):
         raise OSCException("Screen/tmux not supported")
 
@@ -152,8 +156,12 @@ def unix_read_osc(seq: int) -> str:
     if not code.startswith(start):
         raise OSCException("Received response is not an OSC response")
 
-    # Strip starting code and termination code
-    code = code.lstrip(start).rstrip("\x1b\\").rstrip('\a')
+    # Strip starting prefix and trailing termination sequence
+    code = code[len(start):]
+    if code.endswith("\x1b\\"):
+        code = code[:-2]
+    elif code.endswith('\a'):
+        code = code[:-1]
 
     return code
 

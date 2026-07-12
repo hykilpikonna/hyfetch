@@ -231,47 +231,51 @@ BACKEND={{{backends}}}",
     .version(env!("CARGO_PKG_VERSION"));
 }
 
+/// Build a sorted completion list that ranks prefix matches before other substring matches.
+///
+/// Each entry is `(name, description)` where description is `Some(hint)` when provided.
+/// Prefix matches sort before other substring matches; within each group results are sorted
+/// by the position of the match and then alphabetically.
+#[cfg(feature = "autocomplete")]
+fn ranked_completions<'a>(
+    candidates: impl Iterator<Item = &'a &'a str>,
+    input: &str,
+    description: Option<&str>,
+) -> Vec<(String, Option<String>)> {
+    let desc = description.map(str::to_owned);
+    let mut matched: Vec<(bool, usize, &str)> = candidates
+        .filter_map(|&name| {
+            name.find(input).map(|pos| (name.starts_with(input), pos, name))
+        })
+        .collect();
+    // Prefix matches first (true sorts after false, so negate), then earliest position, then name.
+    matched.sort_by_key(|&(is_prefix, pos, name)| (!is_prefix, pos, name));
+    matched
+        .into_iter()
+        .map(|(_, _, name)| (name.to_owned(), desc.clone()))
+        .collect()
+}
+
 #[cfg(feature = "autocomplete")]
 fn complete_preset(input: &String) -> Vec<(String, Option<String>)> {
-    <Preset as VariantNames>::VARIANTS
+    let all_variants: Vec<&str> = <Preset as VariantNames>::VARIANTS
         .iter()
-        .chain(iter::once(&"random"))
-        .filter_map(|&name| {
-            if name.starts_with(input) {
-                Some((name.to_owned(), None))
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>()
+        .copied()
+        .chain(iter::once("random"))
+        .collect();
+    ranked_completions(all_variants.iter(), input.as_str(), Some("pride flag preset"))
 }
 
 #[cfg(feature = "autocomplete")]
 fn complete_mode(input: &String) -> Vec<(String, Option<String>)> {
-    AnsiMode::VARIANTS
-        .iter()
-        .filter_map(|&name| {
-            if name.starts_with(input) {
-                Some((name.to_owned(), None))
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>()
+    let variants: Vec<&str> = AnsiMode::VARIANTS.to_vec();
+    ranked_completions(variants.iter(), input.as_str(), Some("color mode"))
 }
 
 #[cfg(feature = "autocomplete")]
 fn complete_backend(input: &String) -> Vec<(String, Option<String>)> {
-    Backend::VARIANTS
-        .iter()
-        .filter_map(|&name| {
-            if name.starts_with(input) {
-                Some((name.to_owned(), None))
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>()
+    let variants: Vec<&str> = Backend::VARIANTS.to_vec();
+    ranked_completions(variants.iter(), input.as_str(), Some("fetch backend"))
 }
 
 #[cfg(test)]
@@ -281,5 +285,44 @@ mod tests {
     #[test]
     fn check_options() {
         options().check_invariants(false)
+    }
+
+    #[cfg(feature = "autocomplete")]
+    #[test]
+    fn complete_preset_substring() {
+        // "gender" is a substring of "transgender" but not a prefix → must still match
+        let results = complete_preset(&"gender".to_owned());
+        let names: Vec<&str> = results.iter().map(|(n, _)| n.as_str()).collect();
+        assert!(
+            names.contains(&"transgender"),
+            "substring 'gender' should match 'transgender', got: {names:?}"
+        );
+    }
+
+    #[cfg(feature = "autocomplete")]
+    #[test]
+    fn complete_preset_prefix_ranked_first() {
+        // "trans" is a prefix of "transgender" → it should appear before any non-prefix matches
+        let results = complete_preset(&"trans".to_owned());
+        assert!(!results.is_empty(), "expected at least one result for 'trans'");
+        let first = results[0].0.as_str();
+        assert!(
+            first.starts_with("trans"),
+            "first result should be a prefix match, got: {first}"
+        );
+    }
+
+    #[cfg(feature = "autocomplete")]
+    #[test]
+    fn complete_preset_descriptions() {
+        // Every completion result should carry a non-empty description
+        let results = complete_preset(&"rain".to_owned());
+        assert!(!results.is_empty(), "expected at least one result for 'rain'");
+        for (name, desc) in &results {
+            assert!(
+                desc.as_deref().is_some_and(|d| !d.is_empty()),
+                "completion for '{name}' should have a description"
+            );
+        }
     }
 }

@@ -289,10 +289,12 @@ def create_config() -> Config:
                 return def_lightness
 
             try:
-                if lightness.endswith('%') or int(lightness) > 1:
-                    lightness = int(lightness[:-1]) / 100 if lightness.endswith('%') else int(lightness) / 100
+                if lightness.endswith('%'):
+                    lightness = int(lightness[:-1]) / 100
                 else:
-                    lightness = float(lightness)
+                    # Accept plain floats (.45, 0.45) and integers treated as percentages (45 → 0.45)
+                    value = float(lightness)
+                    lightness = value / 100 if value > 1 else value
                 assert 0 <= lightness <= 1
                 return lightness
 
@@ -533,7 +535,8 @@ def run():
     now = datetime.datetime.now()
     june_path = CACHE_PATH / f'animation-displayed-{now.year}'
     show_for_june = False
-    if now.month == 6 and now.year not in config.pride_month_shown and not june_path.is_file() and os.isatty(sys.stdout.fileno()):
+    stdout_is_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+    if now.month == 6 and now.year not in config.pride_month_shown and not june_path.is_file() and stdout_is_tty:
         show_for_june = True
 
     if (args.june or show_for_june) and not config.pride_month_disable:

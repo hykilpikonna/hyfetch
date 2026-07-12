@@ -226,7 +226,7 @@ def ensure_git_bash() -> Path:
                 or if_file("C:/Program Files/Git/bin/bash.exe")
                 or if_file("C:/Program Files (x86)/Git/bin/bash.exe"))
 
-    if not git_path.is_file():
+    if not git_path or not git_path.is_file():
         printc("&cError: Git Bash installation not found")
         sys.exit(127)
 
@@ -299,6 +299,9 @@ def get_distro_ascii(distro: str | None = None) -> str:
         cmd += f' --ascii_distro {distro}'
 
     asc = run_neofetch_cmd(cmd, True)
+    if not asc:
+        printc("&cError: Failed to get ASCII art from neofetch")
+        sys.exit(1)
 
     # Unescape backslashes here because backslashes are escaped in neofetch for printf
     asc = asc.replace('\\\\', '\\')
@@ -319,6 +322,7 @@ def run(asc: str, backend: BackendLiteral, args: str = ''):
         return run_fastfetch(asc, args, legacy=True)
     if backend == "qwqfetch":
         return run_qwqfetch(asc, args)
+    raise ValueError(f"Unknown backend: {backend!r}")
 
 
 def run_qwqfetch(asc: str, args: str = ''):
