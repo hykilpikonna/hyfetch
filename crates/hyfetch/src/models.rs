@@ -6,6 +6,7 @@ use strum::{AsRefStr, Display, EnumString};
 
 use crate::color_profile::ColorProfile;
 use crate::color_util::Lightness;
+use crate::color_util::LightnessPerTheme;
 use crate::neofetch_util::ColorAlignment;
 use crate::types::{AnsiMode, Backend, TerminalTheme};
 
@@ -16,6 +17,7 @@ pub struct Config {
     pub auto_detect_light_dark: Option<bool>,
     pub light_dark: Option<TerminalTheme>,
     pub lightness: Option<Lightness>,
+    pub lightness_per_theme: Option<LightnessPerTheme>,
     pub color_align: ColorAlignment,
     pub backend: Backend,
     #[serde(default)]
