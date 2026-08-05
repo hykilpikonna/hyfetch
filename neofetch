@@ -5784,11 +5784,11 @@ get_cols() {
 
         # Convert the spaces into rows of blocks.
         if [ "${BASH_VERSION%%.*}" -lt 5 ]; then
-            [[ "$blocks"  ]] && cols+="${block_spaces// /${blocks}[39;49mnl}"
-            [[ "$blocks2" ]] && cols+="${block_spaces// /${blocks2}[0mnl}"
+            [[ "$blocks"  ]] && cols+="${block_spaces// /${blocks}\\e[39;49mnl}"
+            [[ "$blocks2" ]] && cols+="${block_spaces// /${blocks2}\\e[0mnl}"
         else
-            [[ "$blocks"  ]] && cols+="${block_spaces// /${blocks}\[39;49mnl}"
-            [[ "$blocks2" ]] && cols+="${block_spaces// /${blocks2}\[0mnl}"
+            [[ "$blocks"  ]] && cols+="${block_spaces// /${blocks}\\e\[39;49mnl}"
+            [[ "$blocks2" ]] && cols+="${block_spaces// /${blocks2}\\e\[0mnl}"
         fi
 
         # Determine the horizontal offset of the blocks.
@@ -5800,7 +5800,7 @@ get_cols() {
         # Add newlines to the string.
         cols=${cols%%nl}
         cols=${cols//nl/
-[${block_offset}C${zws}}
+\\e[${block_offset}C${zws}}
 
         # Add block height to info height.
         ((info_height+=block_range[1]>7?block_height+2:block_height+1))
