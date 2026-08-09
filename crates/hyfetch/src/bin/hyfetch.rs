@@ -224,7 +224,8 @@ fn main() -> Result<()> {
     } else {
         color_profile.with_lightness_adaptive(
             config
-                .lightness
+                .lightness_per_theme.map(|val| val.get(theme))
+                .or(config.lightness)
                 .unwrap_or_else(|| Config::default_lightness(theme)),
             theme,
         )
@@ -1495,6 +1496,7 @@ fn create_config(
         light_dark: Some(theme),
         auto_detect_light_dark: Some(det_bg.is_some()),
         lightness: Some(lightness),
+        lightness_per_theme: None,
         color_align,
         backend,
         args: None,

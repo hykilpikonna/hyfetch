@@ -72,6 +72,13 @@ static RGB_COLORS_AC: OnceLock<AhoCorasick> = OnceLock::new();
 #[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
 pub struct Lightness(f32);
 
+/// Represents a dictionary of one lightness option per {light, dark} theme.
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+pub struct LightnessPerTheme {
+    dark: Lightness,
+    light: Lightness,
+}
+
 #[derive(Debug, Error)]
 pub enum LightnessError {
     #[error(
@@ -145,6 +152,15 @@ impl Lightness {
         }
 
         Ok(Self(value))
+    }
+}
+
+impl LightnessPerTheme {
+    pub fn get(&self, theme: TerminalTheme) -> Lightness {
+        match theme {
+            TerminalTheme::Light => self.light,
+            TerminalTheme::Dark => self.dark
+        }
     }
 }
 
