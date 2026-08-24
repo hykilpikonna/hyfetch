@@ -1614,7 +1614,7 @@ get_bios() {
                 fi
 
                 if [[ -f /tmp/sysinfo/bios_date ]]; then
-                    bios+=" $(< /tmp/sysinfo/bios_date)"
+                    bios+=" ($(< /tmp/sysinfo/bios_date))"
                 fi
             fi
         ;;
