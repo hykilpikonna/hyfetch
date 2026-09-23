@@ -166,6 +166,13 @@ def npm_version_exists(package: str, version: str) -> bool:
     return status == 200
 
 
+def crates_version_exists(package: str, version: str) -> bool:
+    package_path = urllib.parse.quote(package)
+    version_path = urllib.parse.quote(version)
+    status, _ = http_json_status(f"https://crates.io/api/v1/crates/{package_path}/{version_path}")
+    return status == 200
+
+
 def github_release_state(repo: str, tag: str, version: str) -> Tuple[bool, bool]:
     repo_path = urllib.parse.quote(repo, safe="/")
     tag_path = urllib.parse.quote(tag, safe="")
@@ -205,15 +212,18 @@ def command_metadata(args: argparse.Namespace) -> None:
     write_output("version", version)
     write_output("python_package", read_pyproject_name())
     write_output("npm_package", package_json["name"])
+    write_output("cargo_package", "hyfetch")
 
 
 def command_state(args: argparse.Namespace) -> None:
     pypi_exists = pypi_version_exists(args.python_package, args.version)
     npm_exists = npm_version_exists(args.npm_package, args.version)
+    crates_exists = crates_version_exists(args.cargo_package, args.version)
     github_release_exists, github_release_complete = github_release_state(args.repo, args.tag, args.version)
 
     write_output("pypi_exists", pypi_exists)
     write_output("npm_exists", npm_exists)
+    write_output("crates_exists", crates_exists)
     write_output("github_release_exists", github_release_exists)
     write_output("github_release_complete", github_release_complete)
 
@@ -241,6 +251,7 @@ def build_parser() -> argparse.ArgumentParser:
     state.add_argument("--version", required=True)
     state.add_argument("--python-package", required=True)
     state.add_argument("--npm-package", required=True)
+    state.add_argument("--cargo-package", default="hyfetch")
     state.add_argument("--repo", required=True)
     state.set_defaults(func=command_state)
 
