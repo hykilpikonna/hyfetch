@@ -12,7 +12,7 @@ from typing import Optional, Set, Tuple
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION_RE = re.compile(r"^v?(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$")
+VERSION_RE = re.compile(r"^v?(?P<version>[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9a-zA-Z.]+)?)$")
 
 
 def write_output(name: str, value) -> None:
@@ -86,28 +86,27 @@ def read_pyproject_name() -> str:
 
 def read_changelog(version: str) -> str:
     content = (ROOT / "README.md").read_text(encoding="utf-8")
-    heading = f"### {version}"
-    match = re.search(
-        rf"^{re.escape(heading)}\s*\n(?P<body>.*?)(?=^### \S|\Z)",
-        content,
-        flags=re.MULTILINE | re.DOTALL,
-    )
+    base_version = version.split("-")[0]
+    for v in [version, base_version]:
+        heading = f"### {v}"
+        match = re.search(
+            rf"^{re.escape(heading)}\s*\n(?P<body>.*?)(?=^### \S|\Z)",
+            content,
+            flags=re.MULTILINE | re.DOTALL,
+        )
+        if match:
+            body = match.group("body").strip()
+            if body:
+                return body + "\n"
 
-    if not match:
-        raise RuntimeError(f"Could not find changelog section {heading!r} in README.md")
-
-    body = match.group("body").strip()
-    if not body:
-        raise RuntimeError(f"Changelog section {heading!r} is empty")
-
-    return body + "\n"
+    raise RuntimeError(f"Could not find changelog section '### {version}' or '### {base_version}' in README.md")
 
 
 def normalize_tag(tag: str) -> Tuple[str, str]:
     match = VERSION_RE.match(tag)
     if not match:
         raise RuntimeError(
-            f"Release tag {tag!r} is not supported. Use a plain version tag like 2.1.1 or v2.1.1."
+            f"Release tag {tag!r} is not supported. Use a version tag like 2.1.1, v2.1.1, or 2.1.1-rc1."
         )
 
     return tag, match.group("version")
@@ -115,6 +114,7 @@ def normalize_tag(tag: str) -> Tuple[str, str]:
 
 def expected_python_assets(version: str) -> Set[str]:
     package = "hyfetch"
+    py_ver = re.sub(r"-(rc|alpha|beta|dev)", r"\1", version)
     platforms = [
         "any",
         "win_amd64",
@@ -126,8 +126,8 @@ def expected_python_assets(version: str) -> Set[str]:
         "macosx_11_0_arm64",
     ]
 
-    assets = {f"{package}-{version}.tar.gz"}
-    assets.update(f"{package}-{version}-py3-none-{platform}.whl" for platform in platforms)
+    assets = {f"{package}-{py_ver}.tar.gz"}
+    assets.update(f"{package}-{py_ver}-py3-none-{platform}.whl" for platform in platforms)
     return assets
 
 

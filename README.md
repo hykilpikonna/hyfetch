@@ -140,6 +140,18 @@ cargo install --git https://github.com/hykilpikonna/hyfetch
 
 <!-- CHANGELOG STARTS HERE --->
 
+### 2.1.1
+
+**✨ Features & Enhancements**
+
+* Added `berrisexual` & `almondsexual` flags ([#545](https://github.com/hykilpikonna/hyfetch/issues/545)).
+* Published crate to crates.io with automated OIDC publishing ([#544](https://github.com/hykilpikonna/hyfetch/issues/544)).
+
+**🐛 Bug Fixes**
+
+* Fixed `cachyos_small` distro variant displaying as `/` ([#540](https://github.com/hykilpikonna/hyfetch/issues/540)).
+* Fixed crates.io packaging to include README, data assets, and embedded neofetch script for `cargo install`.
+
 ### 2.1.0
 
 Changes since `2.1.0-rc1`.
