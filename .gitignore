@@ -132,3 +132,7 @@ __pycache__
 *.pyc
 *.pyo
 *.pyd
+
+# Cargo packaging temporary assets
+crates/hyfetch/hyfetch
+crates/hyfetch/neofetch

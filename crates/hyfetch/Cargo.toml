@@ -9,6 +9,14 @@ repository = { workspace = true }
 license = { workspace = true }
 readme = { workspace = true }
 default-run = "hyfetch"
+include = [
+    "src/**/*",
+    "build.rs",
+    "Cargo.toml",
+    "README.md",
+    "hyfetch/**/*",
+    "neofetch",
+]
 
 [dependencies]
 aho-corasick = { workspace = true, features = ["perf-literal", "std"] }

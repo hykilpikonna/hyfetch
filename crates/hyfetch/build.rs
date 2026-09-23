@@ -51,6 +51,7 @@ fn main() -> Result<()> {
     let data_dir = anything_that_exist(&[
         &dir.join("hyfetch/data"),
         &dir.join("../../hyfetch/data"),
+        &dir.join("data"),
     ]).context("couldn't find hyfetch/data")?;
     
     let dst_root = o.join("hyfetch");
