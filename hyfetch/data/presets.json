@@ -265,6 +265,8 @@
   "cupioromantic":["#FCAAA4", "#FDC6C1", "#FFFFFF", "#C9C0E7", "#A1A1A1"],
   "cupiosexual":["#A0A0A0", "#C7BFE8", "#FFFFFF", "#FFB3DA"],
   "cow":["#4FB7AC", "#FFFFFF", "#F6C0D0", "#EC758B", "#BC196A", "#520B45"],
+  "berrisexual": ["#335ADD", "#358DF7", "#83E2FF", "#FFFFFF", "#CD91F3", "#9D54E3", "#563399"],
+  "almondsexual": ["#95386F", "#DE5990", "#F194B1", "#FFFFFF", "#A885FB", "#AA3BF2", "#BC39D5"],
 
   "beiyang": ["#DF1B12", "#FFC600", "#01639D", "#FFFFFF", "#000000"],
   "burger": ["#F3A26A", "#498701", "#FD1C13", "#7D3829", "#F3A26A"],
