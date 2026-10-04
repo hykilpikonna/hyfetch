@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # vim: noai:ts=4:sw=4:expandtab
 # shellcheck source=/dev/null
 # shellcheck disable=2009 disable=2153 disable=2154 disable=2243 disable=2244 disable=2317 disable=SC2329
@@ -27,6 +27,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+# Bash self-restart for support EACH unix-like environment via posix shebang /bin/sh
+if ! ( eval 'a=(1)' ) 2>/dev/null; then
+    if command -v bash >/dev/null 2>&1; then
+        exec bash "$0" "$@"
+    elif command -v osh >/dev/null 2>&1; then
+        exec osh "$0" "$@"
+    else
+        echo "Error: bash-compatible shell was not found!" >&2
+        exit 1
+    fi
+fi
 
 version=8.1.0
 
@@ -917,8 +929,8 @@ image_source="auto"
 # gNewSense, GNOME, GNU, GoboLinux, GrapheneOS, Grombyang, Guix, Haiku, HamoniKR, HarDClanZ,
 # HarmonyOS, Hash,
 # Huayra, Hybrid, HydroOS, Hyperbola, iglunix, Imaginary Linux, instantOS, Interix, IRIX, Itc,
-# januslinux, Kaisen, Kali, KaOS, KDE, Kibojoe, Kogaion, Korora, KrassOS, KSLinux, Kubuntu, LainOS,
-# LangitKetujuh,
+# januslinux, Kaisen, Kali, KaOS, KDE, Keenetic OS, Kibojoe, Kogaion, Korora, KrassOS, KSLinux,
+# Kubuntu, LainOS, LangitKetujuh,
 # LaxerOS, LEDE, LibreELEC, Linspire, Linux, Linux Lite, Linux Mint, Linux Mint Old,
 # LinuxFromScratch, Live Raizo, LMDE, Lubuntu, Lunar, mac, MacaroniOS, Mageia, Magix, MagpieOS,
 # MainsailOS, Mandriva, Manjaro, MassOS, MatuusOS, Maui, Mauna, Meowix, Mer, MidOS, Minix,
@@ -1357,6 +1369,18 @@ get_distro() {
                 distro="Peropesis"
 
             else
+               if [ -f /bin/ndmc ]; then
+                    if [ -z "$__NDM_OUT_VER" ]; then
+                        __NDM_OUT_VER=$(/bin/ndmc -c "show version" 2>/dev/null )
+                    fi
+                    if [ ! -z "$__NDM_OUT_VER" ]; then
+                        n_ven=$( echo "$__NDM_OUT_VER" | awk -F': ' '/vendor/ {print $2}' )
+                        n_ver=$( echo "$__NDM_OUT_VER" | awk -F': ' '/title/ {print $2}' )
+                        distro="$n_ven OS $n_ver"
+                        break
+                    fi
+                fi
+
                 for release_file in /etc/*-release; do
                     distro+=$(< "$release_file")
                 done
@@ -1652,6 +1676,16 @@ get_model() {
 
             elif [[ -f /tmp/sysinfo/model ]]; then
                 model=$(< /tmp/sysinfo/model)
+
+            elif [ -f /bin/ndmc ]; then
+                if [ -z "$__NDM_OUT_VER" ]; then
+                    __NDM_OUT_VER=$(/bin/ndmc -c "show version" 2>/dev/null )
+                fi
+                if [ ! -z "$__NDM_OUT_VER" ]; then
+                    n_ven=$( echo "$__NDM_OUT_VER" | awk -F': ' '/vendor/ {print $2}' )
+                    n_mod=$( echo "$__NDM_OUT_VER" | awk -F': ' '/model/ {print $2}' )
+                    model="$n_ven $n_mod"
+                fi
             fi
         ;;
 
@@ -6041,6 +6075,8 @@ print_ascii() {
     ascii_data="${ascii_data//\$\{c4\}/$c4}"
     ascii_data="${ascii_data//\$\{c5\}/$c5}"
     ascii_data="${ascii_data//\$\{c6\}/$c6}"
+    ascii_data="${ascii_data//\$\{bw\}/$( printf '\e[47m' )}"
+    ascii_data="${ascii_data//\$\{rs\}/$( printf '\e[0m' )}"
 
     ((text_padding=ascii_len+gap))
     printf '%b\n' "$ascii_data${reset}"
@@ -7173,8 +7209,8 @@ ASCII:
                                 Gloire, gNewSense, GNOME, GNU, GoboLinux, GrapheneOS, Grombyang,
                                 Guix, Haiku, HamoniKR, HarDClanZ, HarmonyOS, Hash, Huayra, Hybrid,
                                 HydroOS, Hyperbola, iglunix, Imaginary Linux, instantOS, Interix, IRIX,
-                                Itc, januslinux, Kaisen, Kali, KaOS, KDE, Kibojoe, Kogaion, Korora,
-                                KrassOS, KSLinux,
+                                Itc, januslinux, Kaisen, Kali, KaOS, KDE, Keenetic OS, Kibojoe, Kogaion,
+                                Korora, KrassOS, KSLinux,
                                 Kubuntu, LainOS, LangitKetujuh, LaxerOS, LEDE, LibreELEC, Linspire,
                                 Linux, Linux Lite, Linux Mint, Linux Mint Old, LinuxFromScratch,
                                 Live Raizo, LMDE, Lubuntu, Lunar, mac, MacaroniOS, Mageia, Magix,
@@ -13415,6 +13451,26 @@ ${c1}   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
    ██   ██▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄██
    ██   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀██
    ██                       ██
+   ███████████████████████████
+EOF
+        ;;
+
+        "Keenetic OS"*)
+            set_colors 4 7 3
+            read -rd '' ascii_data <<'EOF'
+${c1}   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+   ███████████████████████████
+   ███████████████████████████
+   ${bw}███    ██████████▀    ▄████${rs}${c1}
+   ${bw}███    ████████▀    ▄██████${rs}${c1}
+   ${bw}███    ██████▀    ▄████████${rs}${c1}
+   ${bw}███              ▀▀████████${rs}${c1}
+   ${bw}███                  ▀█████${rs}${c1}
+   ${bw}███    █████████▄▄▄    ████${rs}${c1}
+   ${bw}███    █████████████    ███${rs}${c1}
+   ${bw}███    █████████████    ███${rs}${c1}
+   ███████████████████████████
+   ███████████████████████████
    ███████████████████████████
 EOF
         ;;
