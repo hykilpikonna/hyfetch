@@ -28,7 +28,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Bash self-restart for support EACH unix-like environment via posix shebang /bin/sh
+# Re-exec under Bash - supporting ANY Unix-like environment via a POSIX /bin/sh shebang
 if ! ( eval 'a=(1)' ) 2>/dev/null; then
     if command -v bash >/dev/null 2>&1; then
         exec bash "$0" "$@"
@@ -38,6 +38,10 @@ if ! ( eval 'a=(1)' ) 2>/dev/null; then
         echo "Error: bash-compatible shell was not found!" >&2
         exit 1
     fi
+else
+    # Disable POSIX strict mode (e.g., to allow sourcing non-existent files when
+    # /bin/sh is a symlink to the bash binary compiled in POSIX mode, as in Arch).
+    set +o posix 2>/dev/null || true
 fi
 
 version=8.1.0
