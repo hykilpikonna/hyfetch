@@ -902,7 +902,8 @@ image_source="auto"
 #
 # NOTE: Adélie, aerOS, Afterglow, AIX, AlmaLinux, Alpine, Alter, Amazon, AmogOS, Anarchy, Android,
 # Antergos, antiX, AOSC OS, Aperio GNU/Linux, Aperture, Apricity, Arch, ArchBox, Archcraft,
-# archcraft_ascii, archcraft_minimal, ARCHlabs, ArchMerge, ArchStrike, ArcoLinux, Arkane, ArseLinux,
+# archcraft_ascii, archcraft_minimal, ARCHlabs, ArchMerge, ArchStrike, ArcoLinux, Arkane, Armada,
+# ArseLinux,
 # Artix, Arya, Asahi, AsteroidOS, astOS, Astra Linux, Athena, azos, Bazzite, Bedrock, BigLinux,
 # BigLinux_large, Bitrig, BlackArch, BlackMesa, blackPanther, BLAG, BlankOn, BlueLight, Bodhi,
 # bonsai, BSD, BunsenLabs, CachyOS, Calculate, CalinixOS, Carbs, CBL-Mariner, CelOS, Center, CentOS,
@@ -7039,7 +7040,8 @@ ASCII:
                                 Amazon, AmogOS, Anarchy, Android, Antergos, antiX, AOSC OS, Aperio
                                 GNU/Linux, Aperture, Apricity, Arch, ArchBox, Archcraft,
                                 archcraft_ascii, archcraft_minimal, ARCHlabs, ArchMerge, ArchStrike,
-                                ArcoLinux, Arkane, ArseLinux, Artix, Arya, Asahi, AsteroidOS, astOS,
+                                ArcoLinux, Arkane, Armada, ArseLinux, Artix, Arya, Asahi,
+                                AsteroidOS, astOS,
                                 Astra Linux, Athena, azos, Bazzite, Bedrock, BigLinux,
                                 BigLinux_large, Bitrig, BlackArch, BlackMesa, blackPanther, BLAG,
                                 BlankOn, BlueLight, Bodhi, bonsai, BSD, BunsenLabs, CachyOS,
@@ -8488,6 +8490,29 @@ ${c1}            '
   'ooxoo'`     .:ooxxo'
  'io'`             `'oo'
 '`                     `'
+EOF
+        ;;
+
+        "Armada"*)
+            set_colors fg
+            read -rd '' ascii_data <<'EOF'
+${c1}                       #
+                       #\
+                      /##
+                      ###
+                     ####
+                    #####   #\
+                   ######   ##
+                  #######   ##\
+                 ########  |###
+                ########/  ####\
+              /#########   ####|
+             ##########/  /#####
+           ############   #####|
+         #############/  ######/
+       ##############/  #######
+     #######^^^^^^^^/  /######/
+  .#^''                   `'^#'
 EOF
         ;;
 
