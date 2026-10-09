@@ -307,7 +307,15 @@ def get_distro_ascii(distro: str | None = None) -> str:
 
 
 def get_distro_name():
-    return run_neofetch_cmd('ascii_distro_name', True)
+    try:
+        return run_neofetch_cmd('ascii_distro_name', True)
+    except subprocess.CalledProcessError:
+        # The bundled neofetch aborts on operating systems it doesn't know
+        # (e.g. HarmonyOS prints "Unknown OS detected" and exits). Fall back to
+        # the kernel name instead of crashing so that the pure-python distro
+        # detector can still find an ascii art for the current OS.
+        uname = getattr(os, 'uname', None)
+        return uname().sysname if uname else platform.uname().system
 
 
 def run(asc: str, backend: BackendLiteral, args: str = ''):

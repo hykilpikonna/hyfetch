@@ -913,7 +913,8 @@ image_source="auto"
 # Endless, Enso, EuroLinux, EvolutionOS, eweOS, Exherbo, Exodia Predator OS, Fedora, Fedora Kinoite,
 # Fedora Sericea, Fedora Silverblue, Fedora_unicode, FemboyOS, Feren, Finnix, Floflis, FreeBSD,
 # FreeMiNT, Frugalware, Funtoo, Furreto, GalliumOS, Garuda, Gentoo, GhostBSD, glaucus, Gloire,
-# gNewSense, GNOME, GNU, GoboLinux, GrapheneOS, Grombyang, Guix, Haiku, HamoniKR, HarDClanZ, Hash,
+# gNewSense, GNOME, GNU, GoboLinux, GrapheneOS, Grombyang, Guix, Haiku, HamoniKR, HarDClanZ,
+# HarmonyOS, Hash,
 # Huayra, Hybrid, HydroOS, Hyperbola, iglunix, Imaginary Linux, instantOS, Interix, IRIX, Itc,
 # januslinux, Kaisen, Kali, KaOS, KDE, Kibojoe, Kogaion, Korora, KrassOS, KSLinux, Kubuntu, LainOS,
 # LangitKetujuh,
@@ -1086,7 +1087,9 @@ get_os() {
         OSF1)     os=digitalUNIX ;;
         QNX)      os=QNX ;;
 
-        Linux|GNU*)
+        # HarmonyOS's kernel reports its name as "HarmonyOS" instead of "Linux",
+        # but the userland and the /proc interface are Linux-compatible.
+        Linux|GNU*|HarmonyOS)
             os=Linux
         ;;
 
@@ -1112,7 +1115,21 @@ get_distro() {
 
     case $os in
         Linux|BSD|MINIX|Ironclad|Fiwix)
-            if [[ -f /bedrock/etc/bedrock-release && -z $BEDROCK_RESTRICT ]]; then
+            if [[ $kernel_name == HarmonyOS ]]; then
+                case $distro_shorthand in
+                    on|tiny) distro="HarmonyOS" ;;
+                    *)
+                        distro="HarmonyOS"
+                        # Try to get the OS version from the system parameter service.
+                        ohos_version=$(param get const.ohos.fullname 2>/dev/null)
+                        ohos_version=${ohos_version#OpenHarmony-}
+                        [[ -z $ohos_version ]] && \
+                            ohos_version=$(param get const.product.software.version 2>/dev/null)
+                        [[ $ohos_version ]] && distro+=" $ohos_version"
+                    ;;
+                esac
+
+            elif [[ -f /bedrock/etc/bedrock-release && -z $BEDROCK_RESTRICT ]]; then
                 case $distro_shorthand in
                     on|tiny) distro="Bedrock Linux" ;;
                     *) distro=$(< /bedrock/etc/bedrock-release)
@@ -3228,6 +3245,7 @@ get_cpu() {
                             # Sometimes there are multiple CPU models (e.g. RK3399 has 4 A53 and 2 A72 cores)
                             # However, I don't know how to implement this in awk, so I'll use python for now
                             read -r -d '' py_script << END
+from glob import glob
 from subprocess import check_output
 
 
@@ -3237,6 +3255,22 @@ def find(lines, label):
             t = ln.split(label)[-1].strip()
             return None if t == '-' else t
 
+    return None
+
+
+def cluster_cores(mhz):
+    # Some kernels expose a broken CPU topology (e.g. HarmonyOS reports
+    # "Core(s) per socket: 0") while the cpufreq policy clusters are valid.
+    for pol in sorted(glob('/sys/devices/system/cpu/cpufreq/policy*')):
+        try:
+            with open(pol + '/cpuinfo_max_freq') as f:
+                pol_mhz = float(f.read().strip()) / 1000
+            with open(pol + '/affected_cpus') as f:
+                count = len(f.read().split())
+        except (OSError, ValueError):
+            continue
+        if count > 0 and abs(pol_mhz - mhz) <= 10:
+            return count
     return None
 
 
@@ -3250,20 +3284,28 @@ if __name__ == '__main__':
     for model_desc in lscpu.split('Model name:'):
         lines = model_desc.split('\n')
         model = lines[0].strip()
+        if model == '-':
+            model = ''
 
         cores = find(lines, 'Core(s) per socket:') or find(lines, 'Core(s) per cluster:')
-        if cores is None:
-            continue
-
-        cores = int(cores)
-        cores *= int(find(lines, 'Socket(s):') or find(lines, 'Cluster(s):') or "1")
-        if cores == -1:
-            continue
+        if cores is not None:
+            cores = int(cores)
+            sockets = int(find(lines, 'Socket(s):') or find(lines, 'Cluster(s):') or "1")
+            if sockets <= 0:
+                sockets = 1
+            cores *= sockets
 
         mhz = float(find(lines, 'CPU max MHz:') or find(lines, 'CPU min MHz:') or "0")
+
+        if cores is None or cores <= 0:
+            cores = cluster_cores(mhz)
+
+        if cores is None or cores <= 0:
+            continue
+
         speed = f'@ {mhz / 1000:.2f} GHz' if mhz > 0 else ''
 
-        cpus.append(f'{vendor_id} {model} ({cores}) {speed}')
+        cpus.append(' '.join(x for x in (vendor_id, model, f'({cores})', speed) if x))
 
     print('\n'.join(cpus))
 END
@@ -3770,6 +3812,63 @@ get_gpu() {
                 fi
             fi
 
+            # Fallback for systems without lspci/glxinfo (e.g. HarmonyOS's
+            # sandboxed userland): ask the Vulkan loader for the device name.
+            vulkan_gpu=""
+            if [[ -z "$gpu_cmd" ]] && command -v python3 &> /dev/null; then
+                read -r -d '' py_vulkan <<'END'
+import ctypes
+
+class VkApplicationInfo(ctypes.Structure):
+    _fields_ = [("sType", ctypes.c_int), ("pNext", ctypes.c_void_p),
+                ("pApplicationName", ctypes.c_char_p), ("applicationVersion", ctypes.c_uint32),
+                ("pEngineName", ctypes.c_char_p), ("engineVersion", ctypes.c_uint32),
+                ("apiVersion", ctypes.c_uint32)]
+
+class VkInstanceCreateInfo(ctypes.Structure):
+    _fields_ = [("sType", ctypes.c_int), ("pNext", ctypes.c_void_p), ("flags", ctypes.c_uint32),
+                ("pApplicationInfo", ctypes.POINTER(VkApplicationInfo)),
+                ("enabledLayerCount", ctypes.c_uint32), ("ppEnabledLayerNames", ctypes.c_void_p),
+                ("enabledExtensionCount", ctypes.c_uint32), ("ppEnabledExtensionNames", ctypes.c_void_p)]
+
+vk = None
+for name in ('libvulkan.so.1', 'libvulkan.so'):
+    try:
+        vk = ctypes.CDLL(name)
+        break
+    except OSError:
+        pass
+
+if vk is not None:
+    vk.vkCreateInstance.restype = ctypes.c_int
+    vk.vkCreateInstance.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+    vk.vkEnumeratePhysicalDevices.restype = ctypes.c_int
+    vk.vkEnumeratePhysicalDevices.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_void_p)]
+    vk.vkGetPhysicalDeviceProperties.restype = None
+    vk.vkGetPhysicalDeviceProperties.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+    app = VkApplicationInfo(sType=0, pApplicationName=b'neofetch', applicationVersion=1,
+                            pEngineName=b'neofetch', engineVersion=1, apiVersion=(1 << 22))
+    info = VkInstanceCreateInfo(sType=1, pApplicationInfo=ctypes.pointer(app))
+    instance = ctypes.c_void_p()
+
+    if vk.vkCreateInstance(ctypes.byref(info), None, ctypes.byref(instance)) == 0:
+        count = ctypes.c_uint32(0)
+        vk.vkEnumeratePhysicalDevices(instance, ctypes.byref(count), None)
+        if count.value:
+            devices = (ctypes.c_void_p * count.value)()
+            vk.vkEnumeratePhysicalDevices(instance, ctypes.byref(count), devices)
+            for dev in devices:
+                props = ctypes.create_string_buffer(4096)
+                vk.vkGetPhysicalDeviceProperties(dev, props)
+                dev_name = props.raw[20:276].split(b'\0')[0].decode('utf-8', 'replace').strip()
+                if dev_name:
+                    print(dev_name)
+END
+                gpu_cmd="$(python3 -c "$py_vulkan" 2>/dev/null)"
+                [[ -n "$gpu_cmd" ]] && vulkan_gpu=on
+            fi
+
             IFS=$'\n' read -d "" -ra gpus <<< "$gpu_cmd"
 
             for gpu in "${gpus[@]}"; do
@@ -3832,7 +3931,12 @@ get_gpu() {
                         gpu="VirtualBox Graphics Adapter"
                     ;;
 
-                    *) continue ;;
+                    *)
+                        # Keep names that came from the Vulkan probe;
+                        # skip everything else that wasn't recognized.
+                        [[ $vulkan_gpu == on ]] || continue
+                        gpu="$(trim "$gpu")"
+                    ;;
                 esac
 
                 if [[ "$gpu_brand" == "off" ]]; then
@@ -6771,6 +6875,13 @@ cache_uname() {
     kernel_version="${uname[1]}"
     kernel_machine="${uname[2]}"
 
+    # HarmonyOS's kernel release ("HongMeng Kernel x.y.z") contains spaces, which
+    # breaks the space-separated parsing above. Query the fields individually.
+    if [[ "$kernel_name" == "HarmonyOS" ]]; then
+        kernel_version="$(uname -r)"
+        kernel_machine="$(uname -m)"
+    fi
+
     if [[ "$kernel_name" == "Darwin" ]] ||
        [[ "$kernel_name" == "FreeBSD" && -f /System/Library/CoreServices/SystemVersion.plist ]]; then
         # macOS can report incorrect versions unless this is 0.
@@ -7055,9 +7166,9 @@ ASCII:
                                 FemboyOS, Feren, Finnix, Floflis, FreeBSD, FreeMiNT, Frugalware,
                                 Funtoo, Furreto, GalliumOS, Garuda, Gentoo, GhostBSD, glaucus,
                                 Gloire, gNewSense, GNOME, GNU, GoboLinux, GrapheneOS, Grombyang,
-                                Guix, Haiku, HamoniKR, HarDClanZ, Hash, Huayra, Hybrid, HydroOS,
-                                Hyperbola, iglunix, Imaginary Linux, instantOS, Interix, IRIX, Itc,
-                                januslinux, Kaisen, Kali, KaOS, KDE, Kibojoe, Kogaion, Korora,
+                                Guix, Haiku, HamoniKR, HarDClanZ, HarmonyOS, Hash, Huayra, Hybrid,
+                                HydroOS, Hyperbola, iglunix, Imaginary Linux, instantOS, Interix, IRIX,
+                                Itc, januslinux, Kaisen, Kali, KaOS, KDE, Kibojoe, Kogaion, Korora,
                                 KrassOS, KSLinux,
                                 Kubuntu, LainOS, LangitKetujuh, LaxerOS, LEDE, LibreELEC, Linspire,
                                 Linux, Linux Lite, Linux Mint, Linux Mint Old, LinuxFromScratch,
@@ -11149,6 +11260,31 @@ ${c2}                     `
 ::`                    `::`..`
                           .` `..
                                 ``
+EOF
+        ;;
+
+        "HarmonyOS"*)
+            set_colors 7 4
+            read -rd '' ascii_data <<'EOF'
+${c1}                      ....-----....
+${c1}                  .-+##############+-..
+${c1}               .+######################+..
+${c1}             .########+-        -++#######-.
+${c1}           .+######-                -######+.
+${c1}          .######.                    .######..
+${c1}         .+####+                        +#####..
+${c1}        .-####+.                         +####+.
+${c1}        .+####+                          -####+..
+${c1}       ..+####+                          -####+...
+${c2}......--${c1}+####+${c2}--.......................--${c1}+####+${c2}-.........
+${c2}       ..${c1}--++++-${c2}......               ...${c1}-++++--${c2}..
+${c2}         ..${c1}--+++--${c2}...                ...${c1}-+++++-${c2}..
+${c2}          .${c1}--+++--${c2}....             ....${c1}--+++-${c2}...
+${c2}          ..${c1}-++++++--${c2}.....    ......${c1}---+---${c2}...
+${c2}          ...${c1}-+++++++++-----${c2}..${c1}----++++++--${c2}..
+${c2}            ...${c1}---++++++----++++++++---${c2}...
+${c2}                 .....${c1}-----+++-----${c2}...
+${c2}                       ...${c1}---${c2}...
 EOF
         ;;
 
