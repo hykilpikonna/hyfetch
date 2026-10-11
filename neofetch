@@ -1596,6 +1596,8 @@ get_bios() {
     # TODO: Add more platform support for bios detection
     case $os in
         Linux)
+            [[ ! -f "$DMI/bios_vendor" && -f /tmp/sysinfo/bios_vendor ]] && DMI="/tmp/sysinfo"
+
             if [[ -f "$DMI/bios_vendor" ]]; then
                 bios="$(< $DMI/bios_vendor)"
 
@@ -1605,16 +1607,6 @@ get_bios() {
 
                 if [[ -f "$DMI/bios_date" ]]; then
                     bios+=" ($(< $DMI/bios_date))"
-                fi
-            elif [[ -f /tmp/sysinfo/bios_vendor ]]; then
-                bios="$(< /tmp/sysinfo/bios_vendor)"
-
-                if [[ -f /tmp/sysinfo/bios_release ]]; then
-                    bios+=" $(< /tmp/sysinfo/bios_release)"
-                fi
-
-                if [[ -f /tmp/sysinfo/bios_date ]]; then
-                    bios+=" ($(< /tmp/sysinfo/bios_date))"
                 fi
             fi
         ;;
