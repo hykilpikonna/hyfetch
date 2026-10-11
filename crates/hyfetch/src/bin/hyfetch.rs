@@ -49,6 +49,8 @@ use terminal_size::{terminal_size, Height, Width};
 use time::{Month, OffsetDateTime};
 use tracing::debug;
 
+pub use hyfetch::ascii::get_random_alignment;
+
 fn main() -> Result<()> {
     add_pkg_path().expect("failed to add pkg path");
 
@@ -245,7 +247,11 @@ fn main() -> Result<()> {
         get_distro_ascii(distro, backend).context("failed to get distro ascii")?
     };
     let asc = asc.to_normalized().context("failed to normalize ascii")?;
-    let color_align = config.color_align;
+    let color_align = if options.random_alignment || config.color_align == ColorAlignment::Random {
+        get_random_alignment(&color_profile, &asc)
+    } else {
+        config.color_align
+    };
     let asc = asc
         .to_recolored(&color_align, &color_profile, color_mode, theme)
         .context("failed to recolor ascii")?;
@@ -731,7 +737,7 @@ fn create_config(
                                 let filtered = filter_flag_indices(part, &flags);
                                 filtered.first().map(|&idx| flags[idx].0.as_ref().to_owned())
                             });
-                        
+
                         if let Some(p) = selection {
                             resolved_presets.push(p);
                         } else {
@@ -1178,8 +1184,8 @@ fn create_config(
         }
 
         print_title_prompt(option_counter, "Let's choose a color arrangement!");
-        println!("You can choose standard horizontal or vertical alignment, or use one of the random color schemes.\nYou can type \"roll\" to randomize again.\n");
-        let mut opts: Vec<Cow<str>> = ["horizontal", "vertical", "roll"].map(Into::into).into();
+        println!("You can choose standard horizontal or vertical alignment, or use one of the random color schemes. You can type \"roll\" to randomize again. Additionally, 'truerandom' will generate a fresh random color scheme every time hyfetch runs.\n");
+        let mut opts: Vec<Cow<str>> = ["horizontal", "vertical", "roll", "truerandom"].map(Into::into).into();
         opts.extend((0..random_count).map(|i| format!("random{i}").into()));
         let choice = literal_input("Your choice?", &opts[..], "horizontal", true, color_mode)
             .context("failed to ask for choice input")
@@ -1193,6 +1199,7 @@ fn create_config(
         // Save choice
         color_align = if choice == "horizontal" { ColorAlignment::Horizontal }
         else if choice == "vertical" { ColorAlignment::Vertical }
+        else if choice == "truerandom" { ColorAlignment::Random }
         else {
             arrangements.into_iter()
                 .find_map(|(k, ca)| {

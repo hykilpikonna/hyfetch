@@ -6,5 +6,5 @@ except ImportError:
 AnsiMode = Literal['default', 'ansi', '8bit', 'rgb']
 LightDark = Literal['light', 'dark']
 BackendLiteral = Literal["neofetch", "fastfetch"]
-ColorAlignMode = Literal['horizontal', 'vertical', 'custom']
+ColorAlignMode = Literal['horizontal', 'vertical', 'custom', 'random']
 ColorSpacing = Literal['equal', 'weighted']

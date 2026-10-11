@@ -73,6 +73,7 @@ pub enum ColorAlignment {
         #[serde(deserialize_with = "crate::utils::index_map_serde::deserialize")]
         colors: IndexMap<NeofetchAsciiIndexedColor, PresetIndexedColor>,
     },
+    Random,
 }
 
 /// Asks the user to provide an input among a list of options.

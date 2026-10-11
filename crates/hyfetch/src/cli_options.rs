@@ -36,6 +36,7 @@ pub struct Options {
     pub palette_glyph: Option<String>,
     #[cfg(feature = "macchina")]
     pub palette_type: Option<String>,
+    pub random_alignment: bool,
 }
 
 pub fn options() -> OptionParser<Options> {
@@ -156,6 +157,7 @@ BACKEND={{{backends}}}",
         .help("Enables hyfetch to detect light/dark terminal background in runtime")
         .argument("BOOL")
         .optional();
+    let random_alignment = long("random-alignment").help("Use a fresh random color alignment every time, independent of config").short('r').switch();
 
     #[cfg(feature = "macchina")]
     let palette_glyph = long("palette-glyph")
@@ -188,7 +190,8 @@ BACKEND={{{backends}}}",
         ask_exit,
         auto_detect_light_dark,
         palette_glyph,
-        palette_type
+        palette_type,
+        random_alignment
     })
     .to_options()
     .header(
@@ -218,7 +221,8 @@ BACKEND={{{backends}}}",
         // hidden
         test_print,
         ask_exit,
-        auto_detect_light_dark
+        auto_detect_light_dark,
+        random_alignment
     })
     .to_options()
     .header(
