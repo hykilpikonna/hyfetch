@@ -937,7 +937,7 @@ image_source="auto"
 # Tails, Tatra, TeArch, TorizonCore, Trisquel, Twister, Tuxedo OS, Ubuntu, Ubuntu Budgie,
 # Ubuntu Cinnamon, Ubuntu Kylin, Ubuntu MATE, Ubuntu Studio, Ubuntu Sway, Ubuntu Touch, Ubuntu-GNOME, ubuntu_old02,
 # Ultramarine Linux, unicodearch, Univalent, Univention, Uos, UrukOS, uwuntu, Vanilla, Venom, VNux,
-# Void, VzLinux, wii-linux-ngx, Windows, Windows 10, Windows 11, Windows95, Wrt, Xenia, Xenia2,
+# Void, Vylen, VzLinux, wii-linux-ngx, Windows, Windows 10, Windows 11, Windows95, Wrt, Xenia, Xenia2,
 # XFerience, Xray_OS, Xubuntu, yiffOS, Zirconium, Zorin have ascii logos.
 
 # NOTE: arch, dragonfly, Fedora, LangitKetujuh, MidOS, nixos, redhat, Ubuntu, void have 'old' logo
@@ -947,7 +947,7 @@ image_source="auto"
 # dragonfly, elementary, endeavouros, fedora, freebsd, garuda, gentoo, guix, haiku, hyperbola, kali,
 # Linux, linuxlite, linuxmint, mac, mageia, MainsailOS, manjaro, mx, netbsd, nixos, openbsd,
 # opensuse, orchid, parabola, popos, postmarketos, pureos, Raspbian, rocky, slackware, sunos,
-# ubuntu, venom, void have 'small' logo variants, use {distro}_small to use them.
+# ubuntu, venom, vylen, void have 'small' logo variants, use {distro}_small to use them.
 ascii_distro="auto"
 
 # Ascii Colors
@@ -2355,6 +2355,7 @@ get_packages() {
             has cave    && dir "/var/db/paludis/repositories/cross-installed/*/data/*/ \
                                /var/db/paludis/repositories/installed/data/*/"
             has hardman && dir "/var/hpkg/packages/*"
+            has emerald && dir "/var/lib/emerald/db/*"
             shopt -u nullglob
             }
 
@@ -7196,7 +7197,7 @@ ASCII:
                                 Ubuntu Cinnamon, Ubuntu Kylin, Ubuntu MATE, Ubuntu Studio, Ubuntu
                                 Sway, Ubuntu Touch, Ubuntu-GNOME, ubuntu_old02, Ultramarine Linux,
                                 unicodearch, Univalent, Univention, Uos, UrukOS, uwuntu, Vanilla,
-                                Venom, VNux, Void, VzLinux, wii-linux-ngx, Windows, Windows 10,
+                                Venom, VNux, Void, Vylen, VzLinux, wii-linux-ngx, Windows, Windows 10,
                                 Windows 11, Windows95, Wrt, Xenia, Xenia2, XFerience, Xray_OS,
                                 Xubuntu, yiffOS, Zirconium, Zorin have ascii logos.
 
@@ -7208,7 +7209,7 @@ ASCII:
                                 freebsd, garuda, gentoo, guix, haiku, hyperbola, kali, Linux,
                                 linuxlite, linuxmint, mac, mageia, MainsailOS, manjaro, mx, netbsd,
                                 nixos, openbsd, opensuse, orchid, parabola, popos, postmarketos,
-                                pureos, Raspbian, rocky, slackware, sunos, ubuntu, venom, void have
+                                pureos, Raspbian, rocky, slackware, sunos, ubuntu, venom, vylen, void have
                                 'small' logo variants, use {distro}_small to use them.
 
                                 NOTE: Fedora has immutable spins with unique logos (except Onyx).
@@ -16152,6 +16153,49 @@ ${c1} 'ljmwn${c2}~tk8${c5}MWWWWM8O${c2}X${c1}r${c2}+]nC${c1}[
                    ^"
 EOF
 
+        ;;
+        "vylen_small")
+            set_colors 2
+            read -rd '' ascii_data <<'EOF'
+      ${c1}:~!!!~. .~!!!~:
+    :~!!!!!~. .~!!!!!~:
+  :~!!!!!!!~. .~!!!!!!!~:
+:~!!!!!!!!!~. .~!!!!!!!!!~:
+!!!!!!!!!!!!. .!!!!!!!!!!!!
+~~~~~~~~~~~^   ^~~~~~~~~~~~
+
+~~~~~~~~~~~^   ^~~~~~~~~~~~
+!!!!!!!!!!!!   !!!!!!!!!!!!
+:~!!!!!!!!!!:.:!!!!!!!!!!~:
+  :~!!!!!!!!!!!!!!!!!!!~:
+    :~!!!!!!!!!!!!!!!~:
+      :~!!!!!!!!!!!~:
+EOF
+        ;;
+
+        "Vylen"*)
+            set_colors 2
+            read -rd '' ascii_data <<'EOF'
+          ${c1}.^^^^^^:    :^^^^^^.
+        .:^^^^^^^:    :^^^^^^^:.
+      .^^^^^^^^^^:    :^^^^^^^^^^.
+    .^^^^^^^^^^^^:    :^^^^^^^^^^^^.
+  .^^^^^^^^^^^^^^:    :^^^^^^^^^^^^^^.
+.^^^^^^^^^^^^^^^^:    :^^^^^^^^^^^^^^^^:
+^^^^^^^^^^^^^^^^^:    :^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^~:    :~^^^^^^^^^^^^^^^^
+..................    ..................
+
+..................    ..................
+^^^^^^^^^^^^^^^^~:    :~^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^:    :^^^^^^^^^^^^^^^^^
+.^^^^^^^^^^^^^^^^:    :^^^^^^^^^^^^^^^^.
+  .^^^^^^^^^^^^^^^::::^^^^^^^^^^^^^^^.
+    .^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^.
+      .^^^^^^^^^^^^^^^^^^^^^^^^^^.
+        .:^^^^^^^^^^^^^^^^^^^^:.
+          .^^^^^^^^^^^^^^^^^^.
+EOF
         ;;
 
         "VzLinux"*)
