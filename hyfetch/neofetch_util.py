@@ -116,6 +116,28 @@ def fill_starting(asc: str) -> str:
     return '\n'.join(new)
 
 
+def get_random_alignment(preset: ColorProfile, asc: str) -> ColorAlignment:
+    """
+    Generate a fresh random color alignment for the given ascii art.
+    """
+    slots = sorted(set(map(int, re.findall(r'(?<=\${c)[0-9](?=})', asc))))
+    if not slots:
+        return ColorAlignment("custom", custom_colors={})
+
+    colors = preset.unique_colors().colors
+    if not colors:
+        return ColorAlignment("custom", custom_colors={})
+
+    import random
+    pis = list(range(len(colors)))
+    while len(pis) < len(slots):
+        pis.extend(range(len(colors)))
+
+    random.shuffle(pis)
+    choice = {slot: pis[i] for i, slot in enumerate(slots)}
+    return ColorAlignment("custom", custom_colors=choice)
+
+
 @dataclass
 class ColorAlignment:
     mode: ColorAlignMode
@@ -145,6 +167,9 @@ class ColorAlignment:
 
         :return Colored ascii, Uncolored lines
         """
+        if self.mode == 'random':
+            return get_random_alignment(preset, asc).recolor_ascii(asc, preset)
+
         asc = fill_starting(asc)
 
         if self.fore_back and self.mode in ['horizontal', 'vertical']:

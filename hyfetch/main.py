@@ -21,16 +21,7 @@ from .models import build_hex_color_profile, Config
 from .neofetch_util import *
 from .presets import PRESETS, ColorProfile
 
-def get_random_alignment(preset: ColorProfile, asc: str) -> ColorAlignment:
-    pis = list(range(len(preset.unique_colors().colors)))
-    slots = list(set(map(int, re.findall('(?<=\\${c)[0-9](?=})', asc))))
-    while len(pis) < len(slots):
-        pis += pis
-    perm = {p[:len(slots)] for p in islice(permutations(pis), 1000)}
 
-    choice = {slots[i]: n for i,n in enumerate(random.choice(sorted(perm)))}
-    print(choice)
-    return ColorAlignment("custom", custom_colors=choice)
 
 def check_config(path) -> Config:
     """
@@ -358,9 +349,7 @@ def create_config() -> Config:
             print()
 
         print_title_prompt("Let's choose a color arrangement!")
-        printc(f'You can choose standard horizontal or vertical alignment, or use one of the random color schemes.')
-        printc(f'Additionally, \'truerandom\' will generate a fresh random color scheme every time.')
-        print('You can type "roll" to randomize again.')
+        printc(f'You can choose standard horizontal or vertical alignment, or use one of the random color schemes. You can type "roll" to randomize again. Additionally, \'truerandom\' will generate a fresh random color scheme every time hyfetch runs.')
         print()
         choice = literal_input(f'Your choice?', ['horizontal', 'vertical', 'roll', 'truerandom'] + [f'random{i}' for i in range(random_count)], 'horizontal')
 

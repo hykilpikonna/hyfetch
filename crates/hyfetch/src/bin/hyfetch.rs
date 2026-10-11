@@ -49,45 +49,7 @@ use terminal_size::{terminal_size, Height, Width};
 use time::{Month, OffsetDateTime};
 use tracing::debug;
 
-pub fn get_random_alignment(preset: &ColorProfile, asc: &NormalizedAsciiArt) -> ColorAlignment {
-    let mut preset_indices: Vec<PresetIndexedColor> = (0..preset.unique_colors().colors.len())
-        .map(|x| (x as u8).into())
-        .collect();
-    let slots: IndexSet<NeofetchAsciiIndexedColor> = {
-        let asc = asc.lines.join("\n");
-        let ac =
-            NEOFETCH_COLORS_AC.get_or_init(|| AhoCorasick::new(NEOFETCH_COLOR_PATTERNS).unwrap());
-        ac.find_iter(&asc)
-            .map(|m| {
-                let ai_start = m.start().checked_add(3).unwrap();
-                let ai_end = m.end().checked_sub(1).unwrap();
-                asc[ai_start..ai_end]
-                    .parse()
-                    .expect("neofetch ascii color index should not be invalid")
-            })
-            .collect()
-    };
-
-    while preset_indices.len() < slots.len() {
-        preset_indices.extend_from_within(0..);
-    }
-    let preset_index_permutations: IndexSet<Vec<PresetIndexedColor>> = preset_indices
-        .into_iter()
-        .permutations(slots.len())
-        .take(1000)
-        .collect();
-
-    // unwrap here should be fine, unless slots.len() == 0
-    let mut rng = fastrand::Rng::new();
-    let choice: Vec<PresetIndexedColor> =
-        rng.choice(preset_index_permutations.into_iter()).unwrap();
-    let choice = choice
-        .into_iter()
-        .enumerate()
-        .map(|(ai, pi)| (slots[ai], pi))
-        .collect();
-    ColorAlignment::Custom { colors: choice }
-}
+pub use hyfetch::ascii::get_random_alignment;
 
 fn main() -> Result<()> {
     add_pkg_path().expect("failed to add pkg path");
@@ -285,9 +247,10 @@ fn main() -> Result<()> {
         get_distro_ascii(distro, backend).context("failed to get distro ascii")?
     };
     let asc = asc.to_normalized().context("failed to normalize ascii")?;
-    let color_align = match options.random_alignment || config.color_align == ColorAlignment::Random {
-        true => get_random_alignment(&color_profile, &asc),
-        false => config.color_align,
+    let color_align = if options.random_alignment || config.color_align == ColorAlignment::Random {
+        get_random_alignment(&color_profile, &asc)
+    } else {
+        config.color_align
     };
     let asc = asc
         .to_recolored(&color_align, &color_profile, color_mode, theme)
@@ -1221,7 +1184,7 @@ fn create_config(
         }
 
         print_title_prompt(option_counter, "Let's choose a color arrangement!");
-        println!("You can choose standard horizontal or vertical alignment, or use one of the random color schemes.\nAdditionally 'truerandom' will generate a fresh random color scheme every time.\nYou can type \"roll\" to randomize again.\n");
+        println!("You can choose standard horizontal or vertical alignment, or use one of the random color schemes. You can type \"roll\" to randomize again. Additionally, 'truerandom' will generate a fresh random color scheme every time hyfetch runs.\n");
         let mut opts: Vec<Cow<str>> = ["horizontal", "vertical", "roll", "truerandom"].map(Into::into).into();
         opts.extend((0..random_count).map(|i| format!("random{i}").into()));
         let choice = literal_input("Your choice?", &opts[..], "horizontal", true, color_mode)

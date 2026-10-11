@@ -4,12 +4,12 @@ use std::ops::Range;
 
 use aho_corasick::AhoCorasick;
 use anyhow::{Context as _, Result};
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use tracing::debug;
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::color_util::{
-    color, ForegroundBackground, NeofetchAsciiIndexedColor, ToAnsiString as _,
+    color, ForegroundBackground, NeofetchAsciiIndexedColor, PresetIndexedColor, ToAnsiString as _,
 };
 use crate::neofetch_util::{
     ascii_size, ColorAlignment, NEOFETCH_COLORS_AC, NEOFETCH_COLOR_PATTERNS,
@@ -68,6 +68,53 @@ impl RawAsciiArt {
     }
 }
 
+/// Generates a random color alignment for the given ascii art.
+pub fn get_random_alignment(preset: &ColorProfile, asc: &NormalizedAsciiArt) -> ColorAlignment {
+    let slots: IndexSet<NeofetchAsciiIndexedColor> = {
+        let asc = asc.lines.join("\n");
+        let ac =
+            NEOFETCH_COLORS_AC.get_or_init(|| AhoCorasick::new(NEOFETCH_COLOR_PATTERNS).unwrap());
+        ac.find_iter(&asc)
+            .map(|m| {
+                let ai_start = m.start().checked_add(3).unwrap();
+                let ai_end = m.end().checked_sub(1).unwrap();
+                asc[ai_start..ai_end]
+                    .parse()
+                    .expect("neofetch ascii color index should not be invalid")
+            })
+            .collect()
+    };
+
+    if slots.is_empty() {
+        return ColorAlignment::Custom {
+            colors: IndexMap::new(),
+        };
+    }
+
+    let num_colors = preset.unique_colors().colors.len();
+    if num_colors == 0 {
+        return ColorAlignment::Custom {
+            colors: IndexMap::new(),
+        };
+    }
+
+    let mut preset_indices: Vec<PresetIndexedColor> =
+        (0..num_colors).map(|x| (x as u8).into()).collect();
+    while preset_indices.len() < slots.len() {
+        preset_indices.extend((0..num_colors).map(|x| PresetIndexedColor::from(x as u8)));
+    }
+
+    let mut rng = fastrand::Rng::new();
+    rng.shuffle(&mut preset_indices);
+
+    let colors = slots
+        .into_iter()
+        .zip(preset_indices)
+        .collect();
+
+    ColorAlignment::Custom { colors }
+}
+
 impl NormalizedAsciiArt {
     /// Uses a color alignment to recolor the ascii art.
     #[tracing::instrument(level = "debug", skip(self), fields(self.w = self.w, self.h = self.h))]
@@ -91,6 +138,10 @@ impl NormalizedAsciiArt {
         let reset = color("&~&*", color_mode).expect("color reset should not be invalid");
 
         let lines = match (color_align, self) {
+            (ColorAlignment::Random, _) => {
+                let resolved = get_random_alignment(color_profile, self);
+                return self.to_recolored(&resolved, color_profile, color_mode, theme);
+            },
             (ColorAlignment::Horizontal, Self { fg, .. }) => {
                 let Self { lines, .. } = self
                     .fill_starting()
@@ -394,3 +445,4 @@ impl NormalizedAsciiArt {
         })
     }
 }
+

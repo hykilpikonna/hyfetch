@@ -221,7 +221,7 @@ BACKEND={{{backends}}}",
         // hidden
         test_print,
         ask_exit,
-        auto_detect_light_dark
+        auto_detect_light_dark,
         random_alignment
     })
     .to_options()
