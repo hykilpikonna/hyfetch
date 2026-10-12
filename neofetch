@@ -1356,18 +1356,17 @@ get_distro() {
             elif compgen -G "/usr/bin/*peropesis*" > /dev/null; then
                 distro="Peropesis"
 
-            else
-               if [ -f /bin/ndmc ]; then
-                    if [ -z "$__NDM_OUT_VER" ]; then
-                        __NDM_OUT_VER=$(/bin/ndmc -c "show version" 2>/dev/null )
-                    fi
-                    if [ ! -z "$__NDM_OUT_VER" ]; then
-                        n_ven=$( echo "$__NDM_OUT_VER" | awk -F': ' '/vendor/ {print $2}' )
-                        n_ver=$( echo "$__NDM_OUT_VER" | awk -F': ' '/title/ {print $2}' )
-                        distro="$n_ven OS $n_ver"
-                        break
-                    fi
+            elif [[ -f /bin/ndmc ]]; then
+                [[ -z $__NDM_OUT_VER ]] && __NDM_OUT_VER=$(/bin/ndmc -c "show version" 2>/dev/null)
+
+                if [[ -n $__NDM_OUT_VER ]]; then
+                    local n_ven n_ver
+                    n_ven=$(awk -F': ' '/vendor/ {print $2}' <<< "$__NDM_OUT_VER")
+                    n_ver=$(awk -F': ' '/title/ {print $2}' <<< "$__NDM_OUT_VER")
+                    distro="$n_ven OS $n_ver"
                 fi
+
+            else
 
                 for release_file in /etc/*-release; do
                     distro+=$(< "$release_file")
@@ -1665,13 +1664,13 @@ get_model() {
             elif [[ -f /tmp/sysinfo/model ]]; then
                 model=$(< /tmp/sysinfo/model)
 
-            elif [ -f /bin/ndmc ]; then
-                if [ -z "$__NDM_OUT_VER" ]; then
-                    __NDM_OUT_VER=$(/bin/ndmc -c "show version" 2>/dev/null )
-                fi
-                if [ ! -z "$__NDM_OUT_VER" ]; then
-                    n_ven=$( echo "$__NDM_OUT_VER" | awk -F': ' '/vendor/ {print $2}' )
-                    n_mod=$( echo "$__NDM_OUT_VER" | awk -F': ' '/model/ {print $2}' )
+            elif [[ -f /bin/ndmc ]]; then
+                [[ -z $__NDM_OUT_VER ]] && __NDM_OUT_VER=$(/bin/ndmc -c "show version" 2>/dev/null)
+
+                if [[ -n $__NDM_OUT_VER ]]; then
+                    local n_ven n_mod
+                    n_ven=$(awk -F': ' '/vendor/ {print $2}' <<< "$__NDM_OUT_VER")
+                    n_mod=$(awk -F': ' '/model/ {print $2}' <<< "$__NDM_OUT_VER")
                     model="$n_ven $n_mod"
                 fi
             fi
@@ -6063,8 +6062,6 @@ print_ascii() {
     ascii_data="${ascii_data//\$\{c4\}/$c4}"
     ascii_data="${ascii_data//\$\{c5\}/$c5}"
     ascii_data="${ascii_data//\$\{c6\}/$c6}"
-    ascii_data="${ascii_data//\$\{bw\}/$( printf '\e[47m' )}"
-    ascii_data="${ascii_data//\$\{rs\}/$( printf '\e[0m' )}"
 
     ((text_padding=ascii_len+gap))
     printf '%b\n' "$ascii_data${reset}"
@@ -13443,20 +13440,20 @@ ${c1}   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 EOF
         ;;
 
-        "Keenetic OS"*)
-            set_colors 4 7 3
+        "Keenetic"*)
+            set_colors 4 7
             read -rd '' ascii_data <<'EOF'
 ${c1}   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
    ███████████████████████████
    ███████████████████████████
-   ${bw}███    ██████████▀    ▄████${rs}${c1}
-   ${bw}███    ████████▀    ▄██████${rs}${c1}
-   ${bw}███    ██████▀    ▄████████${rs}${c1}
-   ${bw}███              ▀▀████████${rs}${c1}
-   ${bw}███                  ▀█████${rs}${c1}
-   ${bw}███    █████████▄▄▄    ████${rs}${c1}
-   ${bw}███    █████████████    ███${rs}${c1}
-   ${bw}███    █████████████    ███${rs}${c1}
+   ███    ██████████▀    ▄████
+   ███    ████████▀    ▄██████
+   ███    ██████▀    ▄████████
+   ███              ▀▀████████
+   ███                  ▀█████
+   ███    █████████▄▄▄    ████
+   ███    █████████████    ███
+   ███    █████████████    ███
    ███████████████████████████
    ███████████████████████████
    ███████████████████████████
