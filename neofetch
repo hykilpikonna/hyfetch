@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # vim: noai:ts=4:sw=4:expandtab
 # shellcheck source=/dev/null
 # shellcheck disable=2009 disable=2153 disable=2154 disable=2243 disable=2244 disable=2317 disable=SC2329
@@ -27,22 +27,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-# Re-exec under Bash - supporting ANY Unix-like environment via a POSIX /bin/sh shebang
-if ! ( eval 'a=(1)' ) 2>/dev/null; then
-    if command -v bash >/dev/null 2>&1; then
-        exec bash "$0" "$@"
-    elif command -v osh >/dev/null 2>&1; then
-        exec osh "$0" "$@"
-    else
-        echo "Error: bash-compatible shell was not found!" >&2
-        exit 1
-    fi
-else
-    # Disable POSIX strict mode (e.g., to allow sourcing non-existent files when
-    # /bin/sh is a symlink to the bash binary compiled in POSIX mode, as in Arch).
-    set +o posix 2>/dev/null || true
-fi
 
 version=8.1.0
 
