@@ -371,7 +371,7 @@ fn prompt_custom_flag(
     debug_mode: bool,
 ) -> Result<String> {
     let mut input_text = String::new();
-    let mut hint: Option<&str> = None;
+    let mut hint: Option<String> = None;
     let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
 
     loop {
@@ -419,12 +419,11 @@ fn prompt_custom_flag(
         }
 
         println!("Press Enter to select this flag, or Esc to cancel.");
+        if let Some(ref h) = hint {
+            printc(&format!("&c{h}&r\n"), color_mode)?;
+        }
         print!("> {input_text}");
         io::stdout().flush().context("failed to flush custom flag prompt")?;
-
-        if let Some(h) = hint {
-            println!("\n{h}");
-        }
 
         raw_mode
             .enable()
@@ -442,14 +441,36 @@ fn prompt_custom_flag(
 
         match key.code {
             KeyCode::Enter => {
-                let colors = parse_hex_colors(&input_text);
-                if !colors.is_empty() {
-                    raw_mode
-                        .disable()
-                        .context("failed to disable raw mode after custom flag")?;
-                    return Ok(colors.join(","));
+                let tokens: Vec<&str> = input_text
+                    .split(|c: char| c.is_whitespace() || c == ',' || c == ';')
+                    .filter(|s| !s.is_empty())
+                    .collect();
+
+                if tokens.is_empty() {
+                    hint = Some("Please enter at least one valid hex color (e.g. ff0000).".to_string());
                 } else {
-                    hint = Some("Please enter at least one valid hex color (e.g. ff0000).");
+                    let mut colors = Vec::new();
+                    let mut invalid_tokens = Vec::new();
+                    for tok in tokens {
+                        let hex = tok.strip_prefix('#').unwrap_or(tok);
+                        if (hex.len() == 3 || hex.len() == 6) && hex.chars().all(|c| c.is_ascii_hexdigit()) {
+                            colors.push(format!("#{hex}"));
+                        } else {
+                            invalid_tokens.push(tok);
+                        }
+                    }
+
+                    if !invalid_tokens.is_empty() {
+                        hint = Some(format!(
+                            "Invalid hex color(s): {}. Use 3 or 6 hex digits (e.g. ff0000 or #f00).",
+                            invalid_tokens.join(", ")
+                        ));
+                    } else {
+                        raw_mode
+                            .disable()
+                            .context("failed to disable raw mode after custom flag")?;
+                        return Ok(colors.join(","));
+                    }
                 }
             }
             KeyCode::Backspace => {
@@ -846,7 +867,6 @@ fn create_config(
     };
 
     let selected_preset_names: Vec<String>;
-    let color_profile;
 
     let mut page: usize = 0;
     let mut filter = String::new();
@@ -887,17 +907,27 @@ fn create_config(
                 if parts.is_empty() {
                     // Default to Rainbow if nothing is entered
                     resolved_presets.push(Preset::Rainbow.as_ref().to_owned());
+                } else if filter.contains('#') && !parts.iter().any(|p| flags.iter().any(|(name, _, lower, _)| name.eq_ignore_ascii_case(p) || lower == *p)) {
+                    // Direct hex color input (e.g. "#ff0000, #00ff00" or "#ff0000 #00ff00")
+                    let hex_colors = parse_hex_colors(&filter);
+                    if !hex_colors.is_empty() {
+                        resolved_presets.push(hex_colors.join(","));
+                    } else {
+                        hint = Some("One or more hex colors are invalid.");
+                    }
                 } else {
                     for part in parts.iter() {
-                        let hex_colors = parse_hex_colors(part);
-                        if !hex_colors.is_empty() {
-                            resolved_presets.push(hex_colors.join(","));
-                            continue;
+                        if part.contains('#') {
+                            let hex_colors = parse_hex_colors(part);
+                            if !hex_colors.is_empty() {
+                                resolved_presets.push(hex_colors.join(","));
+                                continue;
+                            }
                         }
 
                         let selection = flags
                             .iter()
-                            .find(|(_, _, name, _)| name == part)
+                            .find(|(name, _, lower, _)| name.eq_ignore_ascii_case(part) || lower == *part)
                             .map(|(name, _, _, _)| name.clone())
                             .or_else(|| {
                                 // Fuzzy match each part
@@ -978,13 +1008,13 @@ fn create_config(
         PresetValue::Single(selected_preset_names.first().cloned().unwrap_or_else(|| Preset::Rainbow.as_ref().to_owned()))
     };
 
-    color_profile = {
+    let color_profile = {
         let first_name = selected_preset_names.first().cloned().unwrap_or_else(|| Preset::Rainbow.as_ref().to_owned());
         if first_name.contains('#') {
             let colors: Vec<String> = first_name.split(',').map(|s| s.trim().to_owned()).collect();
             build_hex_color_profile(&colors).expect("hex colors should be valid")
         } else {
-            flags.iter().find(|(_, _, name, _)| name == &first_name).map(|(_, _, _, p)| p.clone()).unwrap_or_else(|| Preset::Rainbow.color_profile())
+            flags.iter().find(|(name, _, lower, _)| name == &first_name || lower.eq_ignore_ascii_case(&first_name)).map(|(_, _, _, p)| p.clone()).unwrap_or_else(|| Preset::Rainbow.color_profile())
         }
     };
 
@@ -994,7 +1024,7 @@ fn create_config(
                 let colors: Vec<String> = name.split(',').map(|s| s.trim().to_owned()).collect();
                 build_hex_color_profile(&colors).expect("hex colors should be valid")
             } else {
-                flags.iter().find(|(_, _, n, _)| n == name).map(|(_, _, _, p)| p.clone()).unwrap_or_else(|| Preset::Rainbow.color_profile())
+                flags.iter().find(|(n, _, lower, _)| n == name || lower.eq_ignore_ascii_case(name)).map(|(_, _, _, p)| p.clone()).unwrap_or_else(|| Preset::Rainbow.color_profile())
             };
             profile.with_lightness_adaptive(default_lightness, theme)
                 .color_text(name, color_mode, ForegroundBackground::Foreground, false)

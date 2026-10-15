@@ -273,9 +273,10 @@ def create_config() -> Config:
 
         if selection == 'custom':
             return 'custom'
-        parsed = parse_hex_colors(selection)
-        if parsed:
-            return ','.join(parsed)
+        if '#' in selection:
+            parsed = parse_hex_colors(selection)
+            if parsed:
+                return ','.join(parsed)
 
         filtered_indices = filter_flag_indices(selection)
         if selection in PRESETS:
@@ -291,6 +292,7 @@ def create_config() -> Config:
         from prompt_toolkit.key_binding import KeyBindings
 
         last_input = ''
+        hint: str | None = None
         kb = KeyBindings()
 
         @kb.add('escape')
@@ -326,6 +328,8 @@ def create_config() -> Config:
                 lines.append("")
             lines.append("")
             lines.append("Press Enter to select this flag, or Esc / Ctrl+C to cancel.")
+            if hint:
+                lines.append(color(f"&c{hint}&r"))
             return lines
 
         def prompt_message():
@@ -336,11 +340,12 @@ def create_config() -> Config:
             lines = build_custom_lines(raw_input)
             return ANSI('\n'.join(lines) + '\n> ')
 
-        clear_screen(title)
         session = PromptSession(key_bindings=kb)
+        default_val = ''
         while True:
+            clear_screen(title)
             try:
-                line = session.prompt(prompt_message).strip()
+                line = session.prompt(prompt_message, default=default_val).strip()
             except KeyboardInterrupt:
                 clear_screen(title)
                 for l in build_custom_lines(last_input):
@@ -351,10 +356,27 @@ def create_config() -> Config:
             if line == '__cancel__':
                 return 'rainbow'
 
-            colors = parse_hex_colors(line)
-            if colors:
-                return ','.join(colors)
-            printc("&cPlease enter at least one valid hex color (e.g. ff0000).")
+            tokens = [t for t in re.split(r'[,;\s]+', line.strip()) if t]
+            if not tokens:
+                hint = "Please enter at least one valid hex color (e.g. ff0000)."
+                default_val = ''
+                continue
+
+            colors = []
+            invalid_tokens = []
+            for tok in tokens:
+                c = tok.lstrip('#')
+                if len(c) in (3, 6) and all(ch in '0123456789abcdefABCDEF' for ch in c):
+                    colors.append(f'#{c}')
+                else:
+                    invalid_tokens.append(tok)
+
+            if invalid_tokens:
+                hint = f"Invalid hex color(s): {', '.join(invalid_tokens)}. Use 3 or 6 hex digits (e.g. ff0000 or #f00)."
+                default_val = line
+                continue
+
+            return ','.join(colors)
 
     preset = select_preset_prompt_toolkit()
     if preset == 'custom':
