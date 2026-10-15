@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 import random
+import re
 import sys
 import traceback
 from itertools import permutations, islice
@@ -20,6 +21,22 @@ from .font_logo import get_font_logo
 from .models import build_hex_color_profile, Config
 from .neofetch_util import *
 from .presets import PRESETS, ColorProfile
+
+
+def parse_hex_colors(text: str) -> list[str]:
+    """
+    Parse hex colors from text, allowing space or comma separation,
+    with or without '#' prefix, supporting 3 or 6 hex digits.
+    """
+    tokens = re.split(r'[,;\s]+', text.strip())
+    colors = []
+    for tok in tokens:
+        if not tok:
+            continue
+        c = tok.lstrip('#')
+        if len(c) in (3, 6) and all(ch in '0123456789abcdefABCDEF' for ch in c):
+            colors.append(f'#{c}')
+    return colors
 
 
 
@@ -138,6 +155,11 @@ def create_config() -> Config:
         flag = preset.color_text(' ' * spacing, foreground=False)
         flag_entries.append((name, [name.center(spacing), flag, flag, flag], name.lower()))
 
+    # Add custom flag option
+    custom_profile = build_hex_color_profile(['#e06c75', '#e5c07b', '#98c379', '#56b6c2', '#61afef', '#c678dd'])
+    custom_flag = custom_profile.set_light_dl_def(light_dark).color_text(' ' * spacing, foreground=False)
+    flag_entries.append(('custom', ['custom'.center(spacing), custom_flag, custom_flag, custom_flag], 'custom'))
+
     # Calculate flags per row
     flags_per_row = max(1, term_size()[0] // (spacing + 2))
     row_per_page = max(1, (term_size()[1] - 13) // 5)
@@ -249,6 +271,12 @@ def create_config() -> Config:
             print(f"> {last_filter}")
             raise
 
+        if selection == 'custom':
+            return 'custom'
+        parsed = parse_hex_colors(selection)
+        if parsed:
+            return ','.join(parsed)
+
         filtered_indices = filter_flag_indices(selection)
         if selection in PRESETS:
             return selection
@@ -256,9 +284,87 @@ def create_config() -> Config:
             return flag_entries[filtered_indices[0]][0]
         return 'rainbow'
 
-    preset = select_preset_prompt_toolkit()
+    def prompt_custom_flag() -> str:
+        from prompt_toolkit import PromptSession
+        from prompt_toolkit.application.current import get_app
+        from prompt_toolkit.formatted_text import ANSI
+        from prompt_toolkit.key_binding import KeyBindings
 
-    _prs = PRESETS[preset]
+        last_input = ''
+        kb = KeyBindings()
+
+        @kb.add('escape')
+        def _cancel(event):
+            event.app.exit(result='__cancel__')
+
+        def build_custom_lines(raw_input: str) -> list[str]:
+            colors = parse_hex_colors(raw_input)
+            lines = [
+                color(f"&a{option_counter}. Let's set up your custom flag!&r"),
+                "Enter colors separated by spaces or commas (e.g. ff0000 00ff00 0000ff or #f00 #0f0):",
+                "",
+                "Flag preview:",
+            ]
+            if colors:
+                try:
+                    profile = build_hex_color_profile(colors)
+                    preview = profile.set_light_dl_def(light_dark).color_text(' ' * spacing, foreground=False)
+                    lines.append(preview)
+                    lines.append(preview)
+                    lines.append(preview)
+                    swatches = '  '.join(
+                        f"{c_obj.to_ansi(foreground=True)}██&r {c}"
+                        for c_obj, c in zip(profile.colors, colors)
+                    )
+                    lines.append(color(f"Colors ({len(colors)}): {swatches}"))
+                except Exception:
+                    lines.extend(["(invalid colors)", "", "", ""])
+            else:
+                lines.append("(type hex colors to preview flag)")
+                lines.append("")
+                lines.append("")
+                lines.append("")
+            lines.append("")
+            lines.append("Press Enter to select this flag, or Esc / Ctrl+C to cancel.")
+            return lines
+
+        def prompt_message():
+            nonlocal last_input
+            app = get_app()
+            raw_input = app.current_buffer.text
+            last_input = raw_input
+            lines = build_custom_lines(raw_input)
+            return ANSI('\n'.join(lines) + '\n> ')
+
+        clear_screen(title)
+        session = PromptSession(key_bindings=kb)
+        while True:
+            try:
+                line = session.prompt(prompt_message).strip()
+            except KeyboardInterrupt:
+                clear_screen(title)
+                for l in build_custom_lines(last_input):
+                    print(l)
+                print(f"> {last_input}")
+                raise
+
+            if line == '__cancel__':
+                return 'rainbow'
+
+            colors = parse_hex_colors(line)
+            if colors:
+                return ','.join(colors)
+            printc("&cPlease enter at least one valid hex color (e.g. ff0000).")
+
+    preset = select_preset_prompt_toolkit()
+    if preset == 'custom':
+        preset = prompt_custom_flag()
+
+    if '#' in preset:
+        colors = [s.strip() for s in preset.split(',')]
+        _prs = build_hex_color_profile(colors)
+    else:
+        _prs = PRESETS[preset]
     update_title('Selected flag', _prs.set_light_dl_def(light_dark).color_text(preset))
 
     #############################
@@ -607,10 +713,10 @@ def run():
 
     # Run
     try:
-        if config.custom_ascii_path:
-            asc = Path(config.custom_ascii_path).read_text("utf-8")
-        elif args.ascii_file:
+        if args.ascii_file:
             asc = Path(args.ascii_file).read_text("utf-8")
+        elif config.custom_ascii_path:
+            asc = Path(config.custom_ascii_path).read_text("utf-8")
         else:
             asc = get_distro_ascii()
         color_align: ColorAlignment = get_random_alignment(preset, asc) if (args.random_alignment or config.color_align.mode == "random") else config.color_align

@@ -309,6 +309,176 @@ fn det_bg() -> Result<Option<Srgb<u8>>, terminal_colorsaurus::Error> {
     }
 }
 
+struct RawModeGuard {
+    enabled: bool,
+}
+
+impl RawModeGuard {
+    fn new() -> Result<Self> {
+        Ok(Self { enabled: false })
+    }
+
+    fn enable(&mut self) -> Result<()> {
+        if !self.enabled {
+            enable_raw_mode().context("failed to enable terminal raw mode")?;
+            self.enabled = true;
+        }
+        Ok(())
+    }
+
+    fn disable(&mut self) -> Result<()> {
+        if self.enabled {
+            disable_raw_mode().context("failed to disable terminal raw mode")?;
+            self.enabled = false;
+        }
+        Ok(())
+    }
+}
+
+impl Drop for RawModeGuard {
+    fn drop(&mut self) {
+        if self.enabled {
+            let _ = disable_raw_mode();
+        }
+    }
+}
+
+fn print_title_prompt(option_counter: NonZeroU8, prompt: &str) {
+    printc!("&a{option_counter}. {prompt}");
+}
+
+fn parse_hex_colors(text: &str) -> Vec<String> {
+    text.split(|c: char| c.is_whitespace() || c == ',' || c == ';')
+        .filter(|s| !s.is_empty())
+        .filter_map(|tok| {
+            let hex = tok.strip_prefix('#').unwrap_or(tok);
+            if (hex.len() == 3 || hex.len() == 6) && hex.chars().all(|c| c.is_ascii_hexdigit()) {
+                Some(format!("#{hex}"))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+fn prompt_custom_flag(
+    title: &str,
+    option_counter: NonZeroU8,
+    color_mode: AnsiMode,
+    theme: TerminalTheme,
+    default_lightness: Lightness,
+    spacing: usize,
+    debug_mode: bool,
+) -> Result<String> {
+    let mut input_text = String::new();
+    let mut hint: Option<&str> = None;
+    let mut raw_mode = RawModeGuard::new().context("failed to initialize raw input mode")?;
+
+    loop {
+        raw_mode
+            .disable()
+            .context("failed to disable raw mode for rendering")?;
+
+        clear_screen(Some(title), color_mode, debug_mode).context("failed to clear screen")?;
+        print_title_prompt(option_counter, "Let's set up your custom flag!");
+        println!(
+            "Enter colors separated by spaces or commas (e.g. ff0000 00ff00 0000ff or #f00 #0f0):\n"
+        );
+
+        let colors = parse_hex_colors(&input_text);
+        if !colors.is_empty() {
+            if let Ok(profile) = build_hex_color_profile(&colors) {
+                if let Ok(flag_preview) = profile
+                    .with_lightness_adaptive(default_lightness, theme)
+                    .color_text(
+                        &" ".repeat(spacing),
+                        color_mode,
+                        ForegroundBackground::Background,
+                        false,
+                    )
+                {
+                    println!("Flag preview:");
+                    printc(&flag_preview, color_mode)?;
+                    printc(&flag_preview, color_mode)?;
+                    printc(&flag_preview, color_mode)?;
+                    let swatches = profile
+                        .colors
+                        .iter()
+                        .zip(&colors)
+                        .map(|(c_obj, c_str)| {
+                            let ansi = c_obj.to_ansi_string(color_mode, ForegroundBackground::Foreground);
+                            format!("{ansi}██\x1b[0m {c_str}")
+                        })
+                        .join("  ");
+                    println!("Colors ({}): {swatches}\n", colors.len());
+                }
+            }
+        } else {
+            println!("Flag preview:");
+            println!("(type hex colors to preview flag)\n\n\n");
+        }
+
+        println!("Press Enter to select this flag, or Esc to cancel.");
+        print!("> {input_text}");
+        io::stdout().flush().context("failed to flush custom flag prompt")?;
+
+        if let Some(h) = hint {
+            println!("\n{h}");
+        }
+
+        raw_mode
+            .enable()
+            .context("failed to enable raw mode for key input")?;
+
+        let event = event::read().context("failed to read keyboard event")?;
+        let Event::Key(key) = event else {
+            continue;
+        };
+        if !matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat) {
+            continue;
+        }
+
+        hint = None;
+
+        match key.code {
+            KeyCode::Enter => {
+                let colors = parse_hex_colors(&input_text);
+                if !colors.is_empty() {
+                    raw_mode
+                        .disable()
+                        .context("failed to disable raw mode after custom flag")?;
+                    return Ok(colors.join(","));
+                } else {
+                    hint = Some("Please enter at least one valid hex color (e.g. ff0000).");
+                }
+            }
+            KeyCode::Backspace => {
+                input_text.pop();
+            }
+            KeyCode::Esc => {
+                raw_mode
+                    .disable()
+                    .context("failed to disable raw mode after custom flag cancel")?;
+                return Ok(Preset::Rainbow.as_ref().to_owned());
+            }
+            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                raw_mode
+                    .disable()
+                    .context("failed to disable raw mode before interrupting")?;
+                println!();
+                return Err(anyhow::anyhow!("interrupted by user"));
+            }
+            KeyCode::Char(c)
+                if !key.modifiers.contains(KeyModifiers::CONTROL)
+                    && !key.modifiers.contains(KeyModifiers::ALT) =>
+            {
+                input_text.push(c);
+            }
+            _ => {}
+        }
+    }
+}
+
 /// Creates config interactively.
 ///
 /// The config is automatically stored to file.
@@ -365,10 +535,6 @@ fn create_config(
         *option_counter = option_counter
             .checked_add(1)
             .expect("`option_counter` should not overflow `u8`");
-    }
-
-    fn print_title_prompt(option_counter: NonZeroU8, prompt: &str) {
-        printc!("&a{option_counter}. {prompt}");
     }
 
     //////////////////////////////
@@ -504,40 +670,6 @@ fn create_config(
     //////////////////////////////
     // 3. Choose preset
 
-    struct RawModeGuard {
-        enabled: bool,
-    }
-
-    impl RawModeGuard {
-        fn new() -> Result<Self> {
-            Ok(Self { enabled: false })
-        }
-
-        fn enable(&mut self) -> Result<()> {
-            if !self.enabled {
-                enable_raw_mode().context("failed to enable terminal raw mode")?;
-                self.enabled = true;
-            }
-            Ok(())
-        }
-
-        fn disable(&mut self) -> Result<()> {
-            if self.enabled {
-                disable_raw_mode().context("failed to disable terminal raw mode")?;
-                self.enabled = false;
-            }
-            Ok(())
-        }
-    }
-
-    impl Drop for RawModeGuard {
-        fn drop(&mut self) {
-            if self.enabled {
-                let _ = disable_raw_mode();
-            }
-        }
-    }
-
     // Create flag lines
     let mut flags = Vec::with_capacity(Preset::COUNT);
     let spacing = {
@@ -571,11 +703,40 @@ fn create_config(
             spacing = usize::from(spacing)
         );
         flags.push((
-            preset.clone(),
+            preset.as_ref().to_owned(),
             [name, flag.clone(), flag.clone(), flag],
             preset.as_ref().to_ascii_lowercase(),
+            color_profile,
         ));
     }
+
+    let custom_profile = ColorProfile::from_hex_colors(vec![
+        "#e06c75".to_string(),
+        "#e5c07b".to_string(),
+        "#98c379".to_string(),
+        "#56b6c2".to_string(),
+        "#61afef".to_string(),
+        "#c678dd".to_string(),
+    ]).expect("custom profile should be valid");
+    let custom_flag = custom_profile
+        .color_text(
+            " ".repeat(usize::from(spacing)),
+            color_mode,
+            ForegroundBackground::Background,
+            false,
+        )
+        .context("failed to color custom flag")?;
+    let custom_name = format!(
+        "{name:^spacing$}",
+        name = "custom",
+        spacing = usize::from(spacing)
+    );
+    flags.push((
+        "custom".to_string(),
+        [custom_name, custom_flag.clone(), custom_flag.clone(), custom_flag],
+        "custom".to_string(),
+        custom_profile,
+    ));
 
     // Calculate flags per row
     let (flags_per_row, rows_per_page) = {
@@ -586,7 +747,7 @@ fn create_config(
     };
     let flags_per_page = usize::from(flags_per_row) * usize::from(rows_per_page);
 
-    fn filter_flag_indices(query: &str, flags: &[(Preset, [String; 4], String)]) -> Vec<usize> {
+    fn filter_flag_indices(query: &str, flags: &[(String, [String; 4], String, ColorProfile)]) -> Vec<usize> {
         if query.is_empty() {
             return (0..flags.len()).collect();
         }
@@ -594,7 +755,7 @@ fn create_config(
         let mut matched = flags
             .iter()
             .enumerate()
-            .filter_map(|(idx, (_, _, preset_name))| {
+            .filter_map(|(idx, (_, _, preset_name, _))| {
                 let position = preset_name.find(query)?;
                 Some((idx, preset_name.starts_with(query), position))
             })
@@ -728,14 +889,20 @@ fn create_config(
                     resolved_presets.push(Preset::Rainbow.as_ref().to_owned());
                 } else {
                     for part in parts.iter() {
+                        let hex_colors = parse_hex_colors(part);
+                        if !hex_colors.is_empty() {
+                            resolved_presets.push(hex_colors.join(","));
+                            continue;
+                        }
+
                         let selection = flags
                             .iter()
-                            .find(|(_, _, name)| name == part)
-                            .map(|(preset, _, _)| preset.as_ref().to_owned())
+                            .find(|(_, _, name, _)| name == part)
+                            .map(|(name, _, _, _)| name.clone())
                             .or_else(|| {
                                 // Fuzzy match each part
                                 let filtered = filter_flag_indices(part, &flags);
-                                filtered.first().map(|&idx| flags[idx].0.as_ref().to_owned())
+                                filtered.first().map(|&idx| flags[idx].0.clone())
                             });
 
                         if let Some(p) = selection {
@@ -786,6 +953,25 @@ fn create_config(
         .disable()
         .context("failed to disable raw mode after preset selection")?;
 
+    let mut resolved_custom_preset_names = Vec::new();
+    for name in selected_preset_names {
+        if name == "custom" {
+            let custom_hex = prompt_custom_flag(
+                &title,
+                option_counter,
+                color_mode,
+                theme,
+                default_lightness,
+                usize::from(spacing),
+                debug_mode,
+            )?;
+            resolved_custom_preset_names.push(custom_hex);
+        } else {
+            resolved_custom_preset_names.push(name);
+        }
+    }
+    let selected_preset_names = resolved_custom_preset_names;
+
     let selected_presets = if selected_preset_names.len() > 1 {
         PresetValue::Multiple(selected_preset_names.clone())
     } else {
@@ -798,7 +984,7 @@ fn create_config(
             let colors: Vec<String> = first_name.split(',').map(|s| s.trim().to_owned()).collect();
             build_hex_color_profile(&colors).expect("hex colors should be valid")
         } else {
-            flags.iter().find(|(_, _, name)| name == &first_name).map(|(p, _, _)| p.color_profile()).unwrap_or_else(|| Preset::Rainbow.color_profile())
+            flags.iter().find(|(_, _, name, _)| name == &first_name).map(|(_, _, _, p)| p.clone()).unwrap_or_else(|| Preset::Rainbow.color_profile())
         }
     };
 
@@ -808,7 +994,7 @@ fn create_config(
                 let colors: Vec<String> = name.split(',').map(|s| s.trim().to_owned()).collect();
                 build_hex_color_profile(&colors).expect("hex colors should be valid")
             } else {
-                flags.iter().find(|(_, _, n)| n == name).map(|(p, _, _)| p.color_profile()).unwrap_or_else(|| Preset::Rainbow.color_profile())
+                flags.iter().find(|(_, _, n, _)| n == name).map(|(_, _, _, p)| p.clone()).unwrap_or_else(|| Preset::Rainbow.color_profile())
             };
             profile.with_lightness_adaptive(default_lightness, theme)
                 .color_text(name, color_mode, ForegroundBackground::Foreground, false)
@@ -1019,7 +1205,7 @@ fn create_config(
         let arrangements: IndexMap<Cow<str>, NormalizedAsciiArt> =
             ds_arrangements.map(|(k, a)| (k.into(), a)).into();
 
-        loop {
+        {
             clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
 
             let asciis: Vec<Vec<String>> = arrangements
@@ -1082,8 +1268,6 @@ fn create_config(
                 "Selected logo type",
                 choice.as_ref(),
             );
-
-            break;
         }
     }
 
