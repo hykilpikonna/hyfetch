@@ -145,6 +145,7 @@ cargo install --git https://github.com/hykilpikonna/hyfetch
 **✨ Features & Enhancements**
 
 * Added `berrisexual` & `almondsexual` flags ([#545](https://github.com/hykilpikonna/hyfetch/issues/545)).
+* Added 6-color lambda support for NixOS logo ([#543](https://github.com/hykilpikonna/hyfetch/issues/543)).
 * Published crate to crates.io with automated OIDC publishing ([#544](https://github.com/hykilpikonna/hyfetch/issues/544)).
 
 **🐛 Bug Fixes**

@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::collections::BTreeSet;
 use std::fmt::Write as _;
 use std::ops::Range;
 
@@ -107,10 +108,7 @@ pub fn get_random_alignment(preset: &ColorProfile, asc: &NormalizedAsciiArt) -> 
     let mut rng = fastrand::Rng::new();
     rng.shuffle(&mut preset_indices);
 
-    let colors = slots
-        .into_iter()
-        .zip(preset_indices)
-        .collect();
+    let colors = slots.into_iter().zip(preset_indices).collect();
 
     ColorAlignment::Custom { colors }
 }
@@ -362,6 +360,21 @@ impl NormalizedAsciiArt {
                     .fill_starting()
                     .context("failed to fill in starting neofetch color codes")?;
 
+                let slots: BTreeSet<NeofetchAsciiIndexedColor> = {
+                    let asc = lines.join("\n");
+                    let ac = NEOFETCH_COLORS_AC
+                        .get_or_init(|| AhoCorasick::new(NEOFETCH_COLOR_PATTERNS).unwrap());
+                    ac.find_iter(&asc)
+                        .map(|m| {
+                            let ai_start = m.start().checked_add(3).unwrap();
+                            let ai_end = m.end().checked_sub(1).unwrap();
+                            asc[ai_start..ai_end]
+                                .parse()
+                                .expect("neofetch ascii color index should not be invalid")
+                        })
+                        .collect()
+                };
+
                 let ColorProfile { colors } = color_profile.unique_colors();
 
                 // Apply colors
@@ -371,13 +384,33 @@ impl NormalizedAsciiArt {
                         .get_or_init(|| AhoCorasick::new(NEOFETCH_COLOR_PATTERNS).unwrap());
                     const N: usize = NEOFETCH_COLOR_PATTERNS.len();
                     let mut replacements = vec![Cow::from(""); N];
-                    for (&ai, &pi) in custom_colors {
-                        let ai: u8 = ai.into();
-                        let pi: u8 = pi.into();
-                        replacements[usize::from(ai.checked_sub(1).unwrap())] = colors
-                            [usize::from(pi)]
-                        .to_ansi_string(color_mode, ForegroundBackground::Foreground)
-                        .into();
+                    if !colors.is_empty() {
+                        for (&ai, &pi) in custom_colors {
+                            let ai: u8 = ai.into();
+                            let pi: u8 = pi.into();
+                            let color = &colors[usize::from(pi) % colors.len()];
+                            replacements[usize::from(ai.checked_sub(1).unwrap())] = color
+                                .to_ansi_string(color_mode, ForegroundBackground::Foreground)
+                                .into();
+                        }
+                        // Fallback for slots in the art that aren't in custom_colors (e.g. backward compat)
+                        for &ai in &slots {
+                            let ai_u8: u8 = ai.into();
+                            let idx = usize::from(ai_u8.checked_sub(1).unwrap());
+                            if replacements[idx].is_empty() {
+                                let fallback_slot =
+                                    NeofetchAsciiIndexedColor::try_from((ai_u8 - 1) % 2 + 1)
+                                        .unwrap();
+                                let pi = custom_colors.get(&fallback_slot).copied().unwrap_or_else(
+                                    || (((ai_u8 - 1) as usize % colors.len()) as u8).into(),
+                                );
+                                let pi_u8: u8 = pi.into();
+                                let color = &colors[usize::from(pi_u8) % colors.len()];
+                                replacements[idx] = color
+                                    .to_ansi_string(color_mode, ForegroundBackground::Foreground)
+                                    .into();
+                            }
+                        }
                     }
                     ac.replace_all(&asc, &replacements)
                 };
@@ -406,37 +439,37 @@ impl NormalizedAsciiArt {
             NEOFETCH_COLORS_AC.get_or_init(|| AhoCorasick::new(NEOFETCH_COLOR_PATTERNS).unwrap());
 
         let mut last = None;
-        let lines =
-            self.lines
-                .iter()
-                .map(|line| {
-                    let line: &str = line.as_ref();
+        let lines = self
+            .lines
+            .iter()
+            .map(|line| {
+                let line: &str = line.as_ref();
 
-                    let mut new = String::new();
-                    let mut matches = ac.find_iter(line).peekable();
+                let mut new = String::new();
+                let mut matches = ac.find_iter(line).peekable();
 
-                    match matches.peek() {
-                        Some(m)
-                            if m.start() == 0
-                                || line[0..m.start()].trim_end_matches(' ').is_empty() =>
-                        {
-                            // Line starts with neofetch color code
-                            last = Some(&line[m.span()]);
-                        },
-                        _ => {
-                            new.push_str(last.unwrap_or(NEOFETCH_COLOR_PATTERNS[0]));
-                        },
-                    }
-                    new.push_str(line);
-
-                    // Get the last placeholder for the next line
-                    if let Some(m) = matches.last() {
+                match matches.peek() {
+                    Some(m)
+                        if m.start() == 0
+                            || line[0..m.start()].trim_end_matches(' ').is_empty() =>
+                    {
+                        // Line starts with neofetch color code
                         last = Some(&line[m.span()]);
-                    }
+                    },
+                    _ => {
+                        new.push_str(last.unwrap_or(NEOFETCH_COLOR_PATTERNS[0]));
+                    },
+                }
+                new.push_str(line);
 
-                    Ok(new)
-                })
-                .collect::<Result<_>>()?;
+                // Get the last placeholder for the next line
+                if let Some(m) = matches.last() {
+                    last = Some(&line[m.span()]);
+                }
+
+                Ok(new)
+            })
+            .collect::<Result<_>>()?;
 
         Ok(Self {
             lines,
@@ -445,4 +478,3 @@ impl NormalizedAsciiArt {
         })
     }
 }
-

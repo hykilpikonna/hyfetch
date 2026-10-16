@@ -1319,7 +1319,7 @@ fn create_config(
         let asc = asc.lines.join("\n");
         let ac =
             NEOFETCH_COLORS_AC.get_or_init(|| AhoCorasick::new(NEOFETCH_COLOR_PATTERNS).unwrap());
-        ac.find_iter(&asc)
+        let mut v: Vec<NeofetchAsciiIndexedColor> = ac.find_iter(&asc)
             .map(|m| {
                 let ai_start = m.start().checked_add(3).unwrap();
                 let ai_end = m.end().checked_sub(1).unwrap();
@@ -1327,7 +1327,9 @@ fn create_config(
                     .parse()
                     .expect("neofetch ascii color index should not be invalid")
             })
-            .collect()
+            .collect();
+        v.sort();
+        v.into_iter().collect()
     };
 
     // Loop for random rolling
@@ -1340,23 +1342,25 @@ fn create_config(
         while preset_indices.len() < slots.len() {
             preset_indices.extend_from_within(0..);
         }
+        let ordered_p: Vec<PresetIndexedColor> = preset_indices[..slots.len()].to_vec();
         let preset_index_permutations: IndexSet<Vec<PresetIndexedColor>> = preset_indices
             .into_iter()
             .permutations(slots.len())
             .take(1000)
             .collect();
         let random_count = (ascii_per_row as usize * ascii_rows as usize).saturating_sub(arrangements.len()).clamp(0, u8::MAX.into()) as u8;
-        let choices: IndexSet<Vec<PresetIndexedColor>> =
-            if usize::from(random_count) > preset_index_permutations.len() {
-                preset_index_permutations
-            } else {
-                rng.choose_multiple(
-                    preset_index_permutations.into_iter(),
-                    usize::from(random_count),
-                )
-                .into_iter()
-                .collect()
-            };
+        let other_permutations: IndexSet<Vec<PresetIndexedColor>> = preset_index_permutations
+            .into_iter()
+            .filter(|p| p != &ordered_p)
+            .collect();
+        let mut choices: IndexSet<Vec<PresetIndexedColor>> = IndexSet::new();
+        choices.insert(ordered_p);
+        let sample_count = (usize::from(random_count)).saturating_sub(1);
+        if sample_count >= other_permutations.len() {
+            choices.extend(other_permutations);
+        } else {
+            choices.extend(rng.choose_multiple(other_permutations.into_iter(), sample_count));
+        }
         let choices: Vec<IndexMap<NeofetchAsciiIndexedColor, PresetIndexedColor>> = choices
             .into_iter()
             .map(|c| {

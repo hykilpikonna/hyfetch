@@ -202,12 +202,21 @@ class ColorAlignment:
                 asc = '\n'.join(preset.color_text(line) + color('&~&*') for line in lines)
 
         else:
-            preset = preset.unique_colors()
+            colors = preset.unique_colors().colors
+            if colors:
+                slots = sorted(set(map(int, re.findall(r'(?<=\${c)[0-9]+(?=})', asc))))
+                color_map = {}
+                for s in slots:
+                    if s in self.custom_colors:
+                        pi = self.custom_colors[s]
+                    elif ((s - 1) % 2 + 1) in self.custom_colors:
+                        pi = self.custom_colors[(s - 1) % 2 + 1]
+                    else:
+                        pi = (s - 1)
+                    color_map[s] = colors[pi % len(colors)].to_ansi()
 
-            # Apply colors
-            color_map = {ai: preset.colors[pi].to_ansi() for ai, pi in self.custom_colors.items()}
-            for ascii_i, c in color_map.items():
-                asc = asc.replace(f'${{c{ascii_i}}}', c)
+                for ascii_i, c in color_map.items():
+                    asc = asc.replace(f'${{c{ascii_i}}}', c)
 
         return asc
 

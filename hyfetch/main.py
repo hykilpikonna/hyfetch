@@ -441,6 +441,8 @@ def create_config() -> Config:
     ascii_per_row = max(1, term_size()[0] // (asc_width + 2))
     ascii_rows = max(1, (term_size()[1] - 8) // asc_lines)
 
+    slots = sorted(set(map(int, re.findall(r'(?<=\${c)[0-9]+(?=})', asc))))
+
     # Displays horizontal and vertical arrangements in the first iteration, but hide them in
     # later iterations
     hv_arrangements = [
@@ -455,15 +457,18 @@ def create_config() -> Config:
 
         # Random color schemes
         pis = list(range(len(_prs.unique_colors().colors)))
-        slots = list(set(map(int, re.findall('(?<=\\${c)[0-9](?=})', asc))))
+        slots = sorted(set(map(int, re.findall(r'(?<=\${c)[0-9]+(?=})', asc))))
         while len(pis) < len(slots):
             pis += pis
         perm = {p[:len(slots)] for p in islice(permutations(pis), 1000)}
+        ordered_p = tuple(pis[:len(slots)])
+        other_perms = [p for p in perm if p != ordered_p]
         random_count = max(0, ascii_per_row * ascii_rows - len(arrangements))
         if random_count > len(perm):
-            choices = perm
+            choices = [ordered_p] + other_perms
         else:
-            choices = random.sample(sorted(perm), random_count)
+            sample_count = max(0, random_count - 1)
+            choices = [ordered_p] + random.sample(sorted(other_perms), min(sample_count, len(other_perms)))
         choices = [{slots[i]: n for i, n in enumerate(c)} for c in choices]
         arrangements += [(f'random{i}', ColorAlignment('custom', r)) for i, r in enumerate(choices)]
         asciis = [[*ca.recolor_ascii(asc, _prs).split('\n'), k.center(asc_width)] for k, ca in arrangements]
