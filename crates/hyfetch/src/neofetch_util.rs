@@ -142,6 +142,18 @@ where
             return Some(selected.as_ref());
         }
 
+        // Aliases
+        if sel == "original" {
+            if let Some(selected) = options.iter().find(|&o| o.as_ref().to_lowercase() == "old") {
+                return Some(selected.as_ref());
+            }
+        }
+        if sel == "new" || sel == "regular" {
+            if let Some(selected) = options.iter().find(|&o| o.as_ref().to_lowercase() == "default") {
+                return Some(selected.as_ref());
+            }
+        }
+
         // Find starting abbreviation
         if let Some(selected) = options
             .iter()
@@ -190,6 +202,13 @@ pub fn add_pkg_path() -> Result<()> {
 /// [neofetch]: https://github.com/hykilpikonna/hyfetch#running-updated-original-neofetch
 pub fn neofetch_path() -> Result<PathBuf> {
     if let Ok(p) = which("neowofetch") {
+        if let Ok(first_line) = fs::read_to_string(&p).map(|s| s.lines().next().unwrap_or("").to_owned()) {
+            if !first_line.contains("python") {
+                return Ok(p);
+            }
+        }
+    }
+    if let Ok(p) = which("neofetch") {
         return Ok(p);
     }
 

@@ -50,6 +50,12 @@ def literal_input(prompt: str, options: Iterable[str], default: str, show_ops: b
         if sel in lows:
             return options[lows.index(sel)]
 
+        # Aliases
+        if sel == 'original' and 'old' in lows:
+            return options[lows.index('old')]
+        if sel in ('new', 'regular') and 'default' in lows:
+            return options[lows.index('default')]
+
         # Find starting abbreviation
         for i, op in enumerate(lows):
             if op.startswith(sel):
@@ -182,7 +188,10 @@ class ColorAlignment:
             # Add new colors
             if self.mode == 'horizontal':
                 colors = preset.with_length(len(lines))
-                asc = '\n'.join([l.replace(f'${{c{back}}}', colors[i].to_ansi()) + color('&~&*') for i, l in enumerate(lines)])
+                if back:
+                    asc = '\n'.join([l.replace(f'${{c{back}}}', colors[i].to_ansi()) + color('&~&*') for i, l in enumerate(lines)])
+                else:
+                    asc = '\n'.join([re.sub(RE_NEOFETCH_COLOR, colors[i].to_ansi(), l) + color('&~&*') for i, l in enumerate(lines)])
             else:
                 raise NotImplementedError()
 

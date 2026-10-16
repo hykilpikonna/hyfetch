@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from .constants import CONFIG_PATH
 from .neofetch_util import ColorAlignment
@@ -43,9 +44,10 @@ class Config:
         d['color_align'] = ColorAlignment.from_dict(d['color_align'])
         return from_dict(cls, d)
 
-    def save(self):
-        CONFIG_PATH.parent.mkdir(exist_ok=True, parents=True)
-        CONFIG_PATH.write_text(json_stringify(self, indent=4), 'utf-8')
+    def save(self, path: Path | None = None):
+        target = Path(path) if path else CONFIG_PATH
+        target.parent.mkdir(exist_ok=True, parents=True)
+        target.write_text(json_stringify(self, indent=4), 'utf-8')
 
     def custom_preset_profiles(self) -> dict[str, ColorProfile]:
         profiles: dict[str, ColorProfile] = {}

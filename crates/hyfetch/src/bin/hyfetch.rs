@@ -1195,48 +1195,99 @@ fn create_config(
         (ascii_per_row, ascii_rows)
     };
 
-    // get distro string and convert it into the enum, neofetch friendly format, so we can check for small logos with the {distro}_small neofetch naming scheme.
+    // get distro string and convert it into the enum, neofetch friendly format, so we can check for small and old logos with the {distro}_small / {distro}_old neofetch naming scheme.
     let tmp_dst = get_distro_name(backend).or_else(|_| get_distro_name(Backend::Neofetch)).context("failed to get distro name")?;
-    let detected_dst = Some(distro.map_or_else(
+    let detected_dst = distro.map_or_else(
         || {
             Distro::detect(&tmp_dst)
-                .map_or("".to_string(), |d| format!("{:?}", d).to_lowercase())
+                .map_or_else(|| tmp_dst.clone(), |d| format!("{:?}", d))
         },
-        |d| d.to_string().to_lowercase(),
-    ));
+        |d| d.to_string(),
+    ).to_lowercase();
 
-    // in case someone specified {distro}_small already in the --distro arg
-    let detected_dst_small_fmt = if !detected_dst.clone().unwrap().ends_with("_small") {
-        format!("{}_small", detected_dst.unwrap()).to_lowercase()
+    let raw_dst = detected_dst.as_str();
+    let base_distro = raw_dst
+        .strip_suffix("_small")
+        .or_else(|| raw_dst.strip_suffix("_old"))
+        .unwrap_or(raw_dst);
+
+    let detected_dst_old_fmt = format!("{base_distro}_old");
+    let running_dst_old = if Distro::detect(&detected_dst_old_fmt).is_some() {
+        detected_dst_old_fmt
     } else {
-        detected_dst.unwrap()
+        "".to_string()
     };
 
+    let detected_dst_small_fmt = format!("{base_distro}_small");
     let running_dst_sml = if Distro::detect(&detected_dst_small_fmt).is_some() {
         detected_dst_small_fmt
     } else {
         "".to_string()
     };
 
+    // Load ascii for default, old, and small logos
+    let default_asc = if raw_dst.ends_with("_old") || raw_dst.ends_with("_small") {
+        get_distro_ascii(Some(base_distro), backend)
+            .or_else(|_| get_distro_ascii(Some(base_distro), Backend::Neofetch))
+            .ok()
+            .and_then(|a| a.to_normalized().ok())
+            .unwrap_or_else(|| asc.clone())
+    } else {
+        asc.clone()
+    };
 
-    // load ascii
-    let small_asc = get_distro_ascii(Some(&running_dst_sml), backend).context("failed to get distro ascii")?;
-    let small_asc = small_asc.to_normalized().context("failed to normalize ascii")?;
+    let old_asc = if !running_dst_old.is_empty() {
+        get_distro_ascii(Some(&running_dst_old), backend)
+            .or_else(|_| get_distro_ascii(Some(&running_dst_old), Backend::Neofetch))
+            .ok()
+            .and_then(|a| a.to_normalized().ok())
+    } else {
+        None
+    };
+
+    let small_asc = if !running_dst_sml.is_empty() {
+        get_distro_ascii(Some(&running_dst_sml), backend)
+            .or_else(|_| get_distro_ascii(Some(&running_dst_sml), Backend::Neofetch))
+            .ok()
+            .and_then(|a| a.to_normalized().ok())
+    } else {
+        None
+    };
 
     let mut asc = asc;
     let mut logo_chosen: Option<String> = distro.cloned();
 
-    if small_asc.lines != asc.lines && running_dst_sml != "" {
-        let ds_arrangements = [
-            ("Default", asc.clone()),
-            ("Small", small_asc.clone())
-        ];
+    let mut ds_arrangements: Vec<(&str, NormalizedAsciiArt)> = vec![
+        ("Default", default_asc.clone()),
+    ];
 
+    if let Some(ref o) = old_asc {
+        if o.lines != default_asc.lines {
+            ds_arrangements.push(("Old", o.clone()));
+        }
+    }
+
+    if let Some(ref s) = small_asc {
+        if s.lines != default_asc.lines {
+            ds_arrangements.push(("Small", s.clone()));
+        }
+    }
+
+    if ds_arrangements.len() > 1 {
         let arrangements: IndexMap<Cow<str>, NormalizedAsciiArt> =
-            ds_arrangements.map(|(k, a)| (k.into(), a)).into();
+            ds_arrangements.into_iter().map(|(k, a)| (k.into(), a)).collect();
+
+        let has_old = arrangements.contains_key("Old");
+        let has_small = arrangements.contains_key("Small");
+
+        let max_h = arrangements.values().map(|a| usize::from(a.h)).max().unwrap_or(usize::from(asc.h));
+        let max_w = arrangements.values().map(|a| usize::from(a.w)).max().unwrap_or(usize::from(asc.w));
 
         {
             clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
+
+            let (Width(term_w), _) = terminal_size().unwrap_or((Width(80), Height(24)));
+            let ascii_per_row = (term_w / (max_w as u16 + 6)).clamp(1, u8::MAX.into()) as u8;
 
             let asciis: Vec<Vec<String>> = arrangements
                 .iter()
@@ -1245,51 +1296,71 @@ fn create_config(
                         .to_recolored(&ColorAlignment::Horizontal, &color_profile, color_mode, theme)
                         .context("failed to recolor ascii")?
                         .lines;
-                        if k == "Small" {
-                            // vertical center
-                            let pad_len = (asc.h as usize - v.len()) / 2;
-                            let mut pad_v: Vec<String> = vec![];
-                            for _ in 0..pad_len {
-                                pad_v.push("".to_string());
-                            }
-                            v.splice(0..0, pad_v.clone());
-                            v.extend(pad_v);
 
-                            let pad_diff = asc.h as usize - v.len();
-                            v.extend(std::iter::repeat("".to_string()).take(pad_diff));
-                            v.push(format!("{k:^asc_width$}", asc_width = usize::from(small_asc.w)));
-                            return Ok(v);
-                        }
-                        v.push(format!("{k:^asc_width$}", asc_width = usize::from(asc.w)));
-                        Ok(v)
+                    let pad_len = max_h.saturating_sub(v.len()) / 2;
+                    let empty_line = " ".repeat(usize::from(a.w));
+                    let pad_v: Vec<String> = vec![empty_line.clone(); pad_len];
+                    v.splice(0..0, pad_v);
+
+                    let pad_diff = max_h.saturating_sub(v.len());
+                    v.extend(std::iter::repeat(empty_line).take(pad_diff));
+                    v.push(format!("{k:^asc_width$}", asc_width = usize::from(a.w)));
+                    Ok(v)
                 })
                 .collect::<Result<_>>()?;
 
-            // prints small logo w/ big logo
             for row in &asciis.into_iter().chunks(usize::from(ascii_per_row)) {
-
                 let row: Vec<Vec<String>> = row.collect();
 
-                for i in 0..usize::from(asc.h).checked_add(1).unwrap() {
+                for i in 0..=max_h {
                     let mut line = Vec::new();
                     for lines in &row {
-                            line.push(&*lines[i]);
+                        line.push(&*lines[i]);
                     }
-                    printc(line.join("                 "), color_mode).context("failed to print ascii line")?;
+                    printc(line.join("        "), color_mode).context("failed to print ascii line")?;
                 }
 
                 println!();
             }
 
-            print_title_prompt(option_counter, "Do you want the default logo, or the small logo?");
-            let opts: Vec<Cow<str>> = ["default", "small"].map(Into::into).into();
+            let prompt_text = match (has_old, has_small) {
+                (true, true) => "Do you want the default logo, the old logo, or the small logo?",
+                (true, false) => "Do you want the default logo, or the old logo?",
+                (false, true) => "Do you want the default logo, or the small logo?",
+                (false, false) => unreachable!(),
+            };
+
+            print_title_prompt(option_counter, prompt_text);
+
+            let mut opts: Vec<Cow<str>> = vec!["default".into()];
+            if has_old {
+                opts.push("old".into());
+            }
+            if has_small {
+                opts.push("small".into());
+            }
+
             let choice = literal_input("Your choice?", &opts[..], "default", true, color_mode)
                 .context("failed to ask for choice input")
-                .context("failed to select logo type").context("failed to ask for choice input")?;
+                .context("failed to select logo type")?;
 
-            if choice.to_lowercase() == "small" {
-                logo_chosen = Some(running_dst_sml);
-                asc = small_asc;
+            match choice.to_lowercase().as_str() {
+                "old" => {
+                    logo_chosen = Some(running_dst_old);
+                    if let Some(o) = old_asc {
+                        asc = o;
+                    }
+                }
+                "small" => {
+                    logo_chosen = Some(running_dst_sml);
+                    if let Some(s) = small_asc {
+                        asc = s;
+                    }
+                }
+                _ => {
+                    logo_chosen = distro.map(|_| base_distro.to_string());
+                    asc = default_asc;
+                }
             }
 
             update_title(

@@ -67,6 +67,7 @@ fn main() -> Result<()> {
         &dir.join("../../neofetch"),
     ]).context("couldn't find neofetch")?;
     println!("cargo:rerun-if-changed={}", neofetch_src.display());
+    println!("cargo:rerun-if-changed={}", data_dir.display());
     fs::copy(&neofetch_src, o.join("neofetch"))?;
 
     preset_codegen(&o.join("hyfetch/data/presets.json"), &o.join("presets.rs"))?;

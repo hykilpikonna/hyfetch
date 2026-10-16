@@ -17,6 +17,7 @@ from . import termenv, neofetch_util, pride_month
 from .color_scale import Scale
 from .color_util import clear_screen
 from .constants import *
+from .distros import distro_detector
 from .font_logo import get_font_logo
 from .models import build_hex_color_profile, Config
 from .neofetch_util import *
@@ -51,12 +52,12 @@ def check_config(path) -> Config:
         try:
             return Config.from_dict(json.loads(path.read_text('utf-8')))
         except KeyError:
-            return create_config()
+            return create_config(path)
 
-    return create_config()
+    return create_config(path)
 
 
-def create_config() -> Config:
+def create_config(path: Path | None = None) -> Config:
     """
     Create config interactively
 
@@ -432,10 +433,102 @@ def create_config() -> Config:
     _prs = _prs.set_light_dl(lightness, light_dark)
     update_title('Selected Brightness', f"{lightness:.2f}")
 
+    ##############################
+    # 5. Choose Default, Old, or Small Logo
+    tmp_dst = GLOBAL_CFG.override_distro or get_distro_name()
+    detected_dst = GLOBAL_CFG.override_distro
+    if not detected_dst:
+        det = distro_detector.detect(tmp_dst)
+        detected_dst = det.name if det else tmp_dst
+    detected_dst = (detected_dst or '').lower()
+
+    raw_dst = detected_dst
+    base_distro = raw_dst
+    for suffix in ('_small', '_old'):
+        if base_distro.endswith(suffix):
+            base_distro = base_distro[:-len(suffix)]
+            break
+
+    running_dst_old = f"{base_distro}_old" if distro_detector.detect(f"{base_distro}_old") else ""
+    running_dst_sml = f"{base_distro}_small" if distro_detector.detect(f"{base_distro}_small") else ""
+
+    default_asc = get_distro_ascii(base_distro) if (raw_dst.endswith('_old') or raw_dst.endswith('_small')) else asc
+    old_asc = get_distro_ascii(running_dst_old) if running_dst_old else None
+    small_asc = get_distro_ascii(running_dst_sml) if running_dst_sml else None
+
+    logo_chosen: str | None = GLOBAL_CFG.override_distro
+
+    ds_arrangements = [
+        ('Default', default_asc)
+    ]
+    if old_asc and old_asc.strip().splitlines() != default_asc.strip().splitlines():
+        ds_arrangements.append(('Old', old_asc))
+    if small_asc and small_asc.strip().splitlines() != default_asc.strip().splitlines():
+        ds_arrangements.append(('Small', small_asc))
+
+    if len(ds_arrangements) > 1:
+        has_old = 'Old' in [k for k, _ in ds_arrangements]
+        has_small = 'Small' in [k for k, _ in ds_arrangements]
+
+        max_h = max(ascii_size(a)[1] for _, a in ds_arrangements)
+        max_w = max(ascii_size(a)[0] for _, a in ds_arrangements)
+
+        while True:
+            clear_screen(title)
+
+            term_w = term_size()[0]
+            ascii_per_row = max(1, term_w // (max_w + 6))
+
+            asciis = []
+            for k, a in ds_arrangements:
+                w, h = ascii_size(a)
+                v_dst = running_dst_old if k == 'Old' else (running_dst_sml if k == 'Small' else base_distro)
+                v_ca = ColorAlignment('horizontal', fore_back=get_fore_back(v_dst))
+                lines = v_ca.recolor_ascii(a, _prs).split('\n')
+                pad_top = (max_h - len(lines)) // 2
+                pad_bottom = max_h - len(lines) - pad_top
+                padded = [' ' * w] * pad_top + lines + [' ' * w] * pad_bottom
+                padded.append(k.center(w))
+                asciis.append(padded)
+
+            while asciis:
+                current = asciis[:ascii_per_row]
+                asciis = asciis[ascii_per_row:]
+                for line in zip(*current):
+                    printc('        '.join(line))
+                print()
+
+            if has_old and has_small:
+                prompt_text = "Do you want the default logo, the old logo, or the small logo?"
+                opts = ['default', 'old', 'small']
+            elif has_old:
+                prompt_text = "Do you want the default logo, or the old logo?"
+                opts = ['default', 'old']
+            else:
+                prompt_text = "Do you want the default logo, or the small logo?"
+                opts = ['default', 'small']
+
+            print_title_prompt(prompt_text)
+            choice = literal_input('Your choice?', opts, 'default')
+
+            if choice == 'old':
+                logo_chosen = running_dst_old
+                asc = old_asc
+            elif choice == 'small':
+                logo_chosen = running_dst_sml
+                asc = small_asc
+            else:
+                logo_chosen = base_distro if GLOBAL_CFG.override_distro else None
+                asc = default_asc
+
+            asc_width, asc_lines = ascii_size(asc)
+            update_title('Selected logo type', choice)
+            break
+
     #############################
-    # 5. Color arrangement
+    # 6. Color arrangement
     color_alignment = None
-    fore_back = get_fore_back()
+    fore_back = get_fore_back(logo_chosen or base_distro)
 
     # Calculate amount of row/column that can be displayed on screen
     ascii_per_row = max(1, term_size()[0] // (asc_width + 2))
@@ -571,13 +664,13 @@ def create_config() -> Config:
 
     # Create config
     clear_screen(title)
-    c = Config(preset, color_system, light_dark, lightness, color_alignment, backend, custom_ascii_path=custom_ascii_path)
+    c = Config(preset, color_system, light_dark, lightness, color_alignment, backend, distro=logo_chosen, custom_ascii_path=custom_ascii_path)
 
     # Save config
     print()
     save = literal_input(f'Save config?', ['y', 'n'], 'y')
     if save == 'y':
-        c.save()
+        c.save(path)
 
     return c
 
@@ -661,7 +754,7 @@ def run():
             args.config_file = CONFIG_PATH
 
     # Load config or create config
-    config = create_config() if args.config else check_config(args.config_file)
+    config = create_config(args.config_file) if args.config else check_config(args.config_file)
 
     # Check if it's June (pride month)
     now = datetime.datetime.now()
@@ -682,7 +775,7 @@ def run():
             june_path.touch()
 
     # Use a custom distro
-    GLOBAL_CFG.override_distro = args.distro or config.distro
+    GLOBAL_CFG.override_distro = (config.distro if args.config else (args.distro or config.distro))
 
     # Param overwrite config
     if args.preset:
