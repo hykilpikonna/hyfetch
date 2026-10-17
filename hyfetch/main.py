@@ -545,6 +545,7 @@ def create_config(path: Path | None = None) -> Config:
     arrangements = hv_arrangements.copy()
 
     # Loop for random rolling
+    is_first = True
     while True:
         clear_screen(title)
 
@@ -554,14 +555,25 @@ def create_config(path: Path | None = None) -> Config:
         while len(pis) < len(slots):
             pis += pis
         perm = {p[:len(slots)] for p in islice(permutations(pis), 1000)}
-        ordered_p = tuple(pis[:len(slots)])
-        other_perms = [p for p in perm if p != ordered_p]
         random_count = max(0, ascii_per_row * ascii_rows - len(arrangements))
-        if random_count > len(perm):
-            choices = [ordered_p] + other_perms
+
+        is_sequential = is_first and len(_prs.unique_colors().colors) == len(slots)
+        if random_count == 0:
+            choices = []
+        elif is_sequential:
+            ordered_p = tuple(pis[:len(slots)])
+            other_perms = [p for p in perm if p != ordered_p]
+            sample_count = random_count - 1
+            if sample_count >= len(other_perms):
+                choices = [ordered_p] + other_perms
+            else:
+                choices = [ordered_p] + random.sample(sorted(other_perms), min(sample_count, len(other_perms)))
         else:
-            sample_count = max(0, random_count - 1)
-            choices = [ordered_p] + random.sample(sorted(other_perms), min(sample_count, len(other_perms)))
+            if random_count >= len(perm):
+                choices = list(perm)
+            else:
+                choices = random.sample(sorted(perm), random_count)
+
         choices = [{slots[i]: n for i, n in enumerate(c)} for c in choices]
         arrangements += [(f'random{i}', ColorAlignment('custom', r)) for i, r in enumerate(choices)]
         asciis = [[*ca.recolor_ascii(asc, _prs).split('\n'), k.center(asc_width)] for k, ca in arrangements]
@@ -581,6 +593,7 @@ def create_config(path: Path | None = None) -> Config:
 
         if choice == 'roll':
             arrangements = []
+            is_first = False
             continue
 
         # Save choice

@@ -1405,6 +1405,7 @@ fn create_config(
 
     // Loop for random rolling
     let mut rng = fastrand::Rng::new();
+    let mut is_first = true;
     loop {
         clear_screen(Some(&title), color_mode, debug_mode).context("failed to clear screen")?;
 
@@ -1420,18 +1421,36 @@ fn create_config(
             .take(1000)
             .collect();
         let random_count = (ascii_per_row as usize * ascii_rows as usize).saturating_sub(arrangements.len()).clamp(0, u8::MAX.into()) as u8;
-        let other_permutations: IndexSet<Vec<PresetIndexedColor>> = preset_index_permutations
-            .into_iter()
-            .filter(|p| p != &ordered_p)
-            .collect();
-        let mut choices: IndexSet<Vec<PresetIndexedColor>> = IndexSet::new();
-        choices.insert(ordered_p);
-        let sample_count = (usize::from(random_count)).saturating_sub(1);
-        if sample_count >= other_permutations.len() {
-            choices.extend(other_permutations);
+
+        let is_sequential = is_first && color_profile.unique_colors().colors.len() == slots.len();
+        let choices: IndexSet<Vec<PresetIndexedColor>> = if random_count == 0 {
+            IndexSet::new()
+        } else if is_sequential {
+            let other_permutations: IndexSet<Vec<PresetIndexedColor>> = preset_index_permutations
+                .into_iter()
+                .filter(|p| p != &ordered_p)
+                .collect();
+            let mut choices: IndexSet<Vec<PresetIndexedColor>> = IndexSet::new();
+            choices.insert(ordered_p);
+            let sample_count = usize::from(random_count) - 1;
+            if sample_count >= other_permutations.len() {
+                choices.extend(other_permutations);
+            } else {
+                choices.extend(rng.choose_multiple(other_permutations.into_iter(), sample_count));
+            }
+            choices
         } else {
-            choices.extend(rng.choose_multiple(other_permutations.into_iter(), sample_count));
-        }
+            if usize::from(random_count) >= preset_index_permutations.len() {
+                preset_index_permutations
+            } else {
+                rng.choose_multiple(
+                    preset_index_permutations.into_iter(),
+                    usize::from(random_count),
+                )
+                .into_iter()
+                .collect()
+            }
+        };
         let choices: Vec<IndexMap<NeofetchAsciiIndexedColor, PresetIndexedColor>> = choices
             .into_iter()
             .map(|c| {
@@ -1482,6 +1501,7 @@ fn create_config(
 
         if choice == "roll" {
             arrangements.clear();
+            is_first = false;
             continue;
         }
 
