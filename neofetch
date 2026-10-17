@@ -2734,6 +2734,8 @@ get_de() {
     # If function was run, stop here.
     ((de_run == 1)) && return
 
+    unset -v de_ver kf_ver qt_ver
+
     case $os in
         "Mac OS X"|"macOS") de=Aqua ;;
 
@@ -2822,29 +2824,66 @@ get_de() {
     esac
 
     ((${KDE_SESSION_VERSION:-0} >= 4)) && de=${de/KDE/Plasma}
-    ((${KDE_SESSION_VERSION:-0} >= 6)) && de=${de/Plasma/Plasma6}
 
     if [[ $de_version == on && $de ]]; then
         case $de in
-            Plasma6*)
-                       de_ver=$(plasmashell --version)
-                       kf_ver=$(kinfo)
-                       qt_ver=${kf_ver/Kernel*}
-                       qt_ver=${qt_ver/*:}
-                       qt_ver=$(trim "$qt_ver")
-                       kf_ver=${kf_ver/Qt*}
-                       kf_ver=${kf_ver/*:}
-                       kf_ver=$(trim "$kf_ver")
-            ;;
             Plasma*)
                        de_ver=$(plasmashell --version)
-                       kf_ver=$(kf5-config --version)
-                       qt_ver=${kf_ver/KDE*}
-                       qt_ver=${qt_ver/Qt:}
-                       qt_ver=$(trim "$qt_ver")
-                       kf_ver=${kf_ver/kf5*}
-                       kf_ver=${kf_ver/*:}
-                       kf_ver=$(trim "$kf_ver")
+                       major="${de_ver/* }"
+                       major="${major%%.*}"
+                       if ((${KDE_SESSION_VERSION:-0} >= 6)) || { [[ $major =~ ^[0-9]+$ ]] && (( major >= 6 )); }; then
+                           for f in /usr/lib*/libKF6CoreAddons.so.6* /usr/lib/*-linux-*/libKF6CoreAddons.so.6* /usr/local/lib*/libKF6CoreAddons.so.6* /run/current-system/sw/lib/libKF6CoreAddons.so.6*; do
+                               if [[ -f $f ]]; then
+                                   real_f="$(readlink -f "$f" 2>/dev/null || printf '%s' "$f")"
+                                   if [[ $real_f =~ \.so\.([0-9]+\.[0-9]+(\.[0-9]+)?) ]]; then
+                                       kf_ver="${BASH_REMATCH[1]}"
+                                       break
+                                   fi
+                               fi
+                           done
+
+                           for f in /usr/lib*/libQt6Core.so.6* /usr/lib/*-linux-*/libQt6Core.so.6* /usr/local/lib*/libQt6Core.so.6* /run/current-system/sw/lib/libQt6Core.so.6*; do
+                               if [[ -f $f ]]; then
+                                   real_f="$(readlink -f "$f" 2>/dev/null || printf '%s' "$f")"
+                                   if [[ $real_f =~ \.so\.([0-9]+\.[0-9]+(\.[0-9]+)?) ]]; then
+                                       qt_ver="${BASH_REMATCH[1]}"
+                                       break
+                                   fi
+                               fi
+                           done
+
+                           # Fallback using ldd on plasmashell if libraries were in non-standard paths
+                           if [[ -z $kf_ver || -z $qt_ver ]] && type -p ldd &>/dev/null && type -p plasmashell &>/dev/null; then
+                               while read -r lib _ p _; do
+                                   if [[ $p && -f $p ]]; then
+                                       real_f="$(readlink -f "$p" 2>/dev/null || printf '%s' "$p")"
+                                       if [[ $real_f =~ \.so\.([0-9]+\.[0-9]+(\.[0-9]+)?) ]]; then
+                                           [[ -z $kf_ver && $lib == *libKF6CoreAddons* ]] && kf_ver="${BASH_REMATCH[1]}"
+                                           [[ -z $qt_ver && $lib == *libQt6Core* ]] && qt_ver="${BASH_REMATCH[1]}"
+                                       fi
+                                   fi
+                               done < <(ldd "$(type -p plasmashell 2>/dev/null)" 2>/dev/null)
+                           fi
+
+                           # Fallback for Qt version via CLI tools if still not detected
+                           if [[ -z $qt_ver ]]; then
+                               if type -p qtpaths6 &>/dev/null; then
+                                   qt_ver="$(qtpaths6 --qt-version 2>/dev/null)"
+                               elif type -p qmake6 &>/dev/null; then
+                                   qt_ver="$(qmake6 -v 2>/dev/null)"
+                                   qt_ver="${qt_ver#*Using Qt version }"
+                                   qt_ver="${qt_ver%% *}"
+                               fi
+                           fi
+                       else
+                           kf_ver=$(kf5-config --version 2>/dev/null)
+                           qt_ver=${kf_ver/KDE*}
+                           qt_ver=${qt_ver/Qt:}
+                           qt_ver=$(trim "$qt_ver")
+                           kf_ver=${kf_ver/kf5*}
+                           kf_ver=${kf_ver/*:}
+                           kf_ver=$(trim "$kf_ver")
+                       fi
             ;;
             MATE*)     de_ver=$(mate-session --version) ;;
             Xfce*)     de_ver=$(xfce4-session --version) ;;
@@ -2869,7 +2908,11 @@ get_de() {
 
         de+=" $de_ver"
 
-        [[ $de == "Plasma"* ]] && de="Plasma $de_ver [KF $kf_ver] [Qt $qt_ver]"
+        if [[ $de == "Plasma"* ]]; then
+            de="Plasma $de_ver"
+            [[ $kf_ver ]] && de+=" [KF $kf_ver]"
+            [[ $qt_ver ]] && de+=" [Qt $qt_ver]"
+        fi
     fi
 
     # TODO:
@@ -2891,8 +2934,8 @@ get_wm() {
     esac
 
     if [[ -O "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY:-wayland-0}" ]]; then
-        if tmp_pid="$(lsof -t "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY:-wayland-0}" 2>&1)" ||
-           tmp_pid="$(fuser   "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY:-wayland-0}" 2>&1)"; then
+        if tmp_pid="$(fuser   "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY:-wayland-0}" 2>&1)" ||
+           tmp_pid="$(lsof -t "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY:-wayland-0}" 2>&1)"; then
             tmp_pid="$(trim "${tmp_pid##*:}")"
             wm="$(ps -p "${tmp_pid}" -ho comm=)"
         else
@@ -4735,10 +4778,11 @@ get_resolution() {
                     enabled=
                     single_resolution=
 
-                    [[ -r "$connector/status" ]]  && read -r status _  < "$connector/status"
                     [[ -r "$connector/enabled" ]] && read -r enabled _ < "$connector/enabled"
+                    [[ $enabled == "disabled" ]] && continue
 
-                    [[ $status == "disconnected" || $enabled == "disabled" ]] && continue
+                    [[ -r "$connector/status" ]]  && read -r status _  < "$connector/status"
+                    [[ $status == "disconnected" ]] && continue
 
                     read -r single_resolution _ < "$dev"
 
