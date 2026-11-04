@@ -2,7 +2,7 @@ use std::io::Write as _;
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt as _;
 use std::path::{Path, PathBuf};
-use std::process::ExitStatus;
+use std::process::{ExitStatus, Output};
 use std::{env, fs, io};
 
 use anyhow::{anyhow, Context as _, Result};
@@ -130,6 +130,21 @@ pub fn process_command_status(status: &ExitStatus) -> Result<()> {
         }
     };
     Err(err)
+}
+
+pub fn process_command_output(output: &Output, cmd_name: &str) -> Result<()> {
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stderr = stderr.trim();
+        if !stderr.is_empty() {
+            process_command_status(&output.status)
+                .with_context(|| format!("{cmd_name} command exited with error: {stderr}"))?;
+        } else {
+            process_command_status(&output.status)
+                .with_context(|| format!("{cmd_name} command exited with error"))?;
+        }
+    }
+    Ok(())
 }
 
 pub(crate) mod index_map_serde {

@@ -1,4 +1,4 @@
-{"match": "\"Windows\"*", "color": "1 2 4 3"}
+{"match": "*\"Windows\"*", "color": "1 2 4 3"}
 ${c1}        ,.=:!!t3Z3z.,
        :tt:::tt333EE3
 ${c1}       Et:::ztt33EEEL${c2} @Ee.,      ..,

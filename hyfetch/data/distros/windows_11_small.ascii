@@ -1,4 +1,4 @@
-{"match": "\"Windows 11_small\"*", "color": "4 4 4 4"}
+{"match": "\"Windows 11_small\"*|\"windows_11_small\"*", "color": "4 4 4 4"}
 ${c1}lllllll  ${c2}lllllll
 ${c1}lllllll  ${c2}lllllll
 ${c1}lllllll  ${c2}lllllll

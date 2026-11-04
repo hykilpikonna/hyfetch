@@ -37,9 +37,9 @@ use crate::color_util::{printc, NeofetchAsciiIndexedColor, PresetIndexedColor};
 use crate::distros::Distro;
 use crate::types::{AnsiMode, Backend};
 #[cfg(feature = "macchina")]
-use crate::utils::{get_cache_path, input, process_command_status};
+use crate::utils::{get_cache_path, input, process_command_output, process_command_status};
 #[cfg(not(feature = "macchina"))]
-use crate::utils::{get_cache_path, input, process_command_status};
+use crate::utils::{get_cache_path, input, process_command_output, process_command_status};
 
 pub const TEST_ASCII: &str = r####################"
 ### |\___/| ###
@@ -181,8 +181,8 @@ pub fn add_pkg_path() -> Result<()> {
     };
     let base = exe.parent().unwrap();
 
-    // Add from bin: ../git, ../fastfetch, ../scripts
-    let to_add = ["git", "fastfetch", "scripts", "fastfetch/usr/bin"];
+    // Add from bin: ../git, ../git/bin, ../git/usr/bin, ../fastfetch, ../scripts
+    let to_add = ["git", "git/bin", "git/usr/bin", "fastfetch", "scripts", "fastfetch/usr/bin"];
     if let Some(parent) = base.parent() {
         path.extend(to_add.iter().map(|d| parent.join(d)));
     }
@@ -214,9 +214,15 @@ pub fn neofetch_path() -> Result<PathBuf> {
 
     // Instead of doing that, let's write the neofetch script to a temp file
     let f: PathBuf = get_cache_path().context("Failed to get cache path")?.join("nf_script.sh");
-    let mut file = fs::File::create(&f).context("Failed to create neofetch script file")?;
-    file.write_all(NEOFETCH_SCRIPT.as_bytes())
-        .context("Failed to write neofetch script to file")?;
+    let needs_write = match fs::read_to_string(&f) {
+        Ok(existing) => existing != NEOFETCH_SCRIPT,
+        Err(_) => true,
+    };
+    if needs_write {
+        let mut file = fs::File::create(&f).context("Failed to create neofetch script file")?;
+        file.write_all(NEOFETCH_SCRIPT.as_bytes())
+            .context("Failed to write neofetch script to file")?;
+    }
 
     Ok(f)
 }
@@ -270,7 +276,14 @@ fn macchina_themes_path() -> Result<PathBuf> {
         .join("themes"));
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        let base_dirs = directories::BaseDirs::new()
+            .context("failed to get base dirs")?;
+        Ok(base_dirs.config_dir().join("macchina").join("themes"))
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let project_dirs = directories::ProjectDirs::from("", "", "macchina")
             .context("failed to get base dirs")?;
@@ -293,6 +306,10 @@ where
             .into()
     };
     debug!(%distro_name, "distro name");
+
+    if distro_name.trim().is_empty() {
+        return Err(anyhow::anyhow!("distro name is empty"));
+    }
 
     // Try new codegen-based detection method
     if let Some(distro) = Distro::detect(&distro_name) {
@@ -508,6 +525,29 @@ fn bash_path() -> Result<PathBuf> {
         }
     }
 
+    // 3. Try well-known Git installation directories
+    let mut known_paths = Vec::new();
+    for base in [r"C:\Program Files\Git", r"C:\Program Files (x86)\Git"] {
+        push_existing_path(&mut known_paths, Path::new(base).join(r"bin\bash.exe"));
+        push_existing_path(&mut known_paths, Path::new(base).join(r"usr\bin\bash.exe"));
+    }
+    if let Some(base_dirs) = directories::BaseDirs::new() {
+        let home = base_dirs.home_dir();
+        for app in ["git", "git-with-openssh"] {
+            let scoop_git = home.join(format!(r"scoop\apps\{app}\current"));
+            push_existing_path(&mut known_paths, scoop_git.join(r"bin\bash.exe"));
+            push_existing_path(&mut known_paths, scoop_git.join(r"usr\bin\bash.exe"));
+        }
+        let local_app_data = home.join(r"AppData\Local\Programs\Git");
+        push_existing_path(&mut known_paths, local_app_data.join(r"bin\bash.exe"));
+        push_existing_path(&mut known_paths, local_app_data.join(r"usr\bin\bash.exe"));
+    }
+    for pth in known_paths {
+        if is_windows_path_compatible_bash(&pth) {
+            return Ok(pth);
+        }
+    }
+
     Err(anyhow!(
         "compatible bash.exe not found. Please ensure Git for Windows is installed and in your PATH."
     ))
@@ -524,7 +564,7 @@ where
         .output()
         .context("failed to execute neofetch as child process")?;
     debug!(?output, "neofetch output");
-    process_command_status(&output.status).context("neofetch command exited with error")?;
+    process_command_output(&output, "neofetch")?;
 
     let out = String::from_utf8(output.stdout)
         .context("failed to process neofetch output as it contains invalid UTF-8")?
@@ -576,7 +616,7 @@ where
         .output()
         .context("failed to execute fastfetch as child process")?;
     debug!(?output, "fastfetch output");
-    process_command_status(&output.status).context("fastfetch command exited with error")?;
+    process_command_output(&output, "fastfetch")?;
 
     let out = String::from_utf8(output.stdout)
         .context("failed to process fastfetch output as it contains invalid UTF-8")?
@@ -615,7 +655,7 @@ where
         .output()
         .context("failed to execute macchina as child process")?;
     debug!(?output, "macchina output");
-    process_command_status(&output.status).context("macchina command exited with error")?;
+    process_command_output(&output, "macchina")?;
 
     let out = String::from_utf8(output.stdout)
         .context("failed to process macchina output as it contains invalid UTF-8")?
@@ -711,11 +751,11 @@ pub fn get_distro_name(backend: Backend) -> Result<String> {
                 .map(|s| {
                     let s = anstream::adapter::strip_str(&s).to_string();
                     let s = s.trim();
-                    s.splitn(2, '-')
+                    let name = s.splitn(2, '-')
                         .last()
                         .expect("splitn with 2 should always have at least 1 element")
-                        .trim()
-                        .to_owned()
+                        .trim();
+                    name.strip_prefix("Microsoft ").unwrap_or(name).to_owned()
                 })
                 .context("failed to get distro name from macchina")
         },
