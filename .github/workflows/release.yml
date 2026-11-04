@@ -391,7 +391,12 @@ jobs:
 
       - name: Publish package
         if: steps.npm-state.outputs.exists != 'true'
-        run: npm publish --provenance
+        run: |
+          if [[ "${{ needs.metadata.outputs.version }}" == *-* ]]; then
+            npm publish --provenance --tag next
+          else
+            npm publish --provenance
+          fi
 
   publish-cargo:
     name: Publish to crates.io

@@ -4,7 +4,7 @@
   "description": "Updated neofetch",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hykilpikonna/hyfetch"
+    "url": "git+https://github.com/hykilpikonna/hyfetch.git"
   },
   "bin": {
     "neowofetch": "neofetch"
