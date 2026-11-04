@@ -266,53 +266,50 @@ jobs:
             --version "${{ needs.metadata.outputs.version }}" \
             --output RELEASE_NOTES.md
 
-      - name: Create or update release metadata
+      - name: Create or update release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ needs.metadata.outputs.tag }}
           VERSION: ${{ needs.metadata.outputs.version }}
         run: |
+          extra_args=()
+          if [[ "$VERSION" == *-* ]]; then
+            extra_args+=(--prerelease)
+          fi
+
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "GitHub Release $TAG already exists."
             gh release edit "$TAG" \
               --title "$VERSION" \
-              --notes-file RELEASE_NOTES.md
-          else
-            gh release create "$TAG" \
-              --verify-tag \
-              --title "$VERSION" \
-              --notes-file RELEASE_NOTES.md
-          fi
+              --notes-file RELEASE_NOTES.md \
+              "${extra_args[@]}"
 
-      - name: Upload missing release assets
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          TAG: ${{ needs.metadata.outputs.tag }}
-        run: |
-          mapfile -t existing_assets < <(gh release view "$TAG" --json assets --jq '.assets[].name')
-          missing_assets=()
-
-          for file in dist/*; do
-            name="$(basename "$file")"
-            found=false
-            for existing in "${existing_assets[@]}"; do
-              if [[ "$existing" == "$name" ]]; then
-                found=true
-                break
+            mapfile -t existing_assets < <(gh release view "$TAG" --json assets --jq '.assets[].name')
+            missing_assets=()
+            for file in dist/*; do
+              name="$(basename "$file")"
+              found=false
+              for existing in "${existing_assets[@]}"; do
+                if [[ "$existing" == "$name" ]]; then
+                  found=true
+                  break
+                fi
+              done
+              if [[ "$found" == "false" ]]; then
+                missing_assets+=("$file")
               fi
             done
 
-            if [[ "$found" == "false" ]]; then
-              missing_assets+=("$file")
+            if ((${#missing_assets[@]} > 0)); then
+              gh release upload "$TAG" "${missing_assets[@]}"
             fi
-          done
-
-          if ((${#missing_assets[@]} == 0)); then
-            echo "All release assets are already uploaded."
           else
-            gh release upload "$TAG" "${missing_assets[@]}"
+            gh release create "$TAG" dist/* \
+              --verify-tag \
+              --title "$VERSION" \
+              --notes-file RELEASE_NOTES.md \
+              "${extra_args[@]}"
           fi
 
   publish-pypi:
