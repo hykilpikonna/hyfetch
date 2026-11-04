@@ -144,14 +144,26 @@ cargo install --git https://github.com/hykilpikonna/hyfetch
 
 **✨ Features & Enhancements**
 
-* Added `berrisexual` & `almondsexual` flags ([#545](https://github.com/hykilpikonna/hyfetch/issues/545)).
-* Added 6-color lambda support for NixOS logo ([#543](https://github.com/hykilpikonna/hyfetch/issues/543)).
-* Published crate to crates.io with automated OIDC publishing ([#544](https://github.com/hykilpikonna/hyfetch/issues/544)).
+* Added custom flag support to create and save user-defined pride presets ([#543](https://github.com/hykilpikonna/hyfetch/issues/543)).
+* Added `-r` / `--random-alignment` CLI flag and config option to generate fresh color alignments on each run ([#550](https://github.com/hykilpikonna/hyfetch/issues/550)).
+* Added selection for "old" distro logo variants in the setup wizard ([#537](https://github.com/hykilpikonna/hyfetch/issues/537)).
+* Added separate lightness settings for light and dark terminal backgrounds ([#533](https://github.com/hykilpikonna/hyfetch/issues/533)).
+* Added new pride presets: Berrisexual & Almondsexual ([#545](https://github.com/hykilpikonna/hyfetch/issues/545)), Demiaroace ([#532](https://github.com/hykilpikonna/hyfetch/issues/532)), Barlo ([#520](https://github.com/hykilpikonna/hyfetch/issues/520)), Cow ([#522](https://github.com/hykilpikonna/hyfetch/issues/522)), Disability Pride ([#523](https://github.com/hykilpikonna/hyfetch/issues/523)), and Unlabeled ([#524](https://github.com/hykilpikonna/hyfetch/issues/524)).
+* Added support for new distro logos: Keenetic OS ([#547](https://github.com/hykilpikonna/hyfetch/issues/547)), ArmadaOS ([#549](https://github.com/hykilpikonna/hyfetch/issues/549)), Vylen Linux ([#551](https://github.com/hykilpikonna/hyfetch/issues/551)), HarmonyOS ([#552](https://github.com/hykilpikonna/hyfetch/issues/552)), and NixOwOS ([#528](https://github.com/hykilpikonna/hyfetch/issues/528)).
+* Added 6-color lambda variant for NixOS logo ([#543](https://github.com/hykilpikonna/hyfetch/issues/543)).
+* Updated PostmarketOS to Nura ([#554](https://github.com/hykilpikonna/hyfetch/issues/554)) and updated AerynOS ASCII art ([#534](https://github.com/hykilpikonna/hyfetch/issues/534)).
+* Neofetch - Added `/tmp/sysinfo` fallback for BIOS info on platforms without DMI tables ([#539](https://github.com/hykilpikonna/hyfetch/issues/539)).
 
 **🐛 Bug Fixes**
 
+* Fixed Windows backend crashes and theme loading for `macchina` and `neofetch` ([#546](https://github.com/hykilpikonna/hyfetch/issues/546)).
+* Fixed freeze on KDE Plasma 6 by replacing `kinfo` with fast library detection ([#531](https://github.com/hykilpikonna/hyfetch/issues/531)).
+* Fixed memory detection on newer macOS versions where `vm_stat` outputs extra wired memory lines ([#526](https://github.com/hykilpikonna/hyfetch/issues/526)).
 * Fixed `cachyos_small` distro variant displaying as `/` ([#540](https://github.com/hykilpikonna/hyfetch/issues/540)).
-* Fixed crates.io packaging to include README, data assets, and embedded neofetch script for `cargo install`.
+* Fixed crash on distros with POSIX-strict bash ([#547](https://github.com/hykilpikonna/hyfetch/issues/547)).
+* Fixed preset filter collisions and selection issues in the setup wizard.
+* Fixed docs and help path resolution to use relative paths ([#518](https://github.com/hykilpikonna/hyfetch/issues/518)).
+* Fixed crate packaging and published crate to crates.io with automated OIDC release workflow ([#544](https://github.com/hykilpikonna/hyfetch/issues/544)).
 
 ### 2.1.0
 
