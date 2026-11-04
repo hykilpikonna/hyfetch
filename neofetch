@@ -929,7 +929,7 @@ image_source="auto"
 # Leap, openSUSE Tumbleweed, openSUSE Tumbleweed-Slowroll, OPNsense, Oracle, orchid, OS Elbrus,
 # PacBSD, Panwah, Parabola, parch, Pardus, Parrot, Parsix, PCBSD, PCLinuxOS, pearOS, Pengwin,
 # Pentoo, Peppermint,
-# Peropesis, phyOS, PikaOS, Pisi, PNM Linux, Pop!_OS, Porteus, PostMarketOS, Profelis SambaBOX,
+# Peropesis, phyOS, PikaOS, Pisi, PNM Linux, Pop!_OS, Porteus, Nura, Profelis SambaBOX,
 # Proxmox, PuffOS, Puppy, PureOS, Q4OS, QNX, Qubes, Qubyt, Quibian, Radix, Raspbian, ravynOS, Reborn
 # OS, Red Star, Redcore, Redhat, Refracted Devuan, Regata, Regolith, RhaymOS, Rhino Linux, rocky,
 # Rosa, Sabayon, sabotage, Sailfish, SalentOS, Salient OS, Salix, Sasanqua, Scientific, secureblue,
@@ -947,7 +947,7 @@ image_source="auto"
 # NOTE: alpine, android, arch, arcolinux, artix, CalinixOS, centos, cleanjaro, crux, debian,
 # dragonfly, elementary, endeavouros, fedora, freebsd, garuda, gentoo, guix, haiku, hyperbola, kali,
 # Linux, linuxlite, linuxmint, mac, mageia, MainsailOS, manjaro, mx, netbsd, nixos, openbsd,
-# opensuse, orchid, parabola, popos, postmarketos, pureos, Raspbian, rocky, slackware, sunos,
+# opensuse, orchid, parabola, popos, nura, postmarketos, pureos, Raspbian, rocky, slackware, sunos,
 # ubuntu, venom, vylen, void have 'small' logo variants, use {distro}_small to use them.
 ascii_distro="auto"
 
@@ -7246,7 +7246,7 @@ ASCII:
                                 MagpieOS, MainsailOS, Mandriva, Manjaro, MassOS, MatuusOS, Maui,
                                 Mauna, Meowix, Mer, MidOS, Minix, MIRACLE LINUX, MX, Namib, NekOS,
                                 Neptune, NetBSD, Netrunner, Nitrux, NixOS, nixos_colorful, NixOwOS,
-                                Nobara, NomadBSD, Nurunner, NuTyX, Obarun, OBRevenge, OmniOS, Open Source
+                                Nobara, NomadBSD, Nura, Nurunner, NuTyX, Obarun, OBRevenge, OmniOS, Open Source
                                 Media Center, OpenBSD, openEuler, OpenIndiana, openKylin, openmamba,
                                 OpenMandriva, OpenSolaris, OpenStage, openSUSE, openSUSE Leap,
                                 openSUSE Tumbleweed, openSUSE Tumbleweed-Slowroll, OPNsense,
@@ -13992,7 +13992,7 @@ s:  yNm+`   .smNd+.
 EOF
         ;;
 
-        "postmarketos_small")
+        "nura_small"|"postmarketos_small")
             set_colors 2 7
             read -rd '' ascii_data <<'EOF'
 ${c1}        /\\
@@ -14007,7 +14007,7 @@ ${c1}        /\\
 EOF
         ;;
 
-        "PostMarketOS"*)
+        "Nura"*|"PostMarketOS"*)
             set_colors 2 7
             read -rd '' ascii_data <<'EOF'
 ${c1}                 /\\
