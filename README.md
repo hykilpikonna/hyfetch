@@ -165,6 +165,26 @@ cargo install --git https://github.com/hykilpikonna/hyfetch
 * Fixed docs and help path resolution to use relative paths ([#518](https://github.com/hykilpikonna/hyfetch/issues/518)).
 * Fixed crate packaging and published crate to crates.io with automated OIDC release workflow ([#544](https://github.com/hykilpikonna/hyfetch/issues/544)).
 
+## New Contributors
+* @Marzal made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/516
+* @IamPyu made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/524
+* @zeldaAhmed made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/523
+* @meowette made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/520
+* @eztakesin made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/526
+* @AnonymousRand made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/528
+* @DavidBuchanan314 made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/535
+* @feroshina made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/532
+* @luyanaa made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/552
+* @CelestifyX made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/551
+* @JPyke3 made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/549
+* @sertonix made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/548
+* @DanielMYT made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/539
+* @djairoh made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/550
+* @Ivan-Alone made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/547
+* @tulilirockz made their first contribution in https://github.com/hykilpikonna/hyfetch/pull/554
+
+**Full Changelog**: https://github.com/hykilpikonna/hyfetch/compare/2.1.0...2.1.1
+
 ### 2.1.0
 
 Changes since `2.1.0-rc1`.
