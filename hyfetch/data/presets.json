@@ -43,6 +43,11 @@
     "weights": [2, 3, 1, 3],
     "comment": "sourced from https://commons.wikimedia.org/wiki/File:Demisexual_Pride_Flag.svg"
   },
+  "demiromantic": {
+    "colors": ["#000000", "#FFFFFF", "#338a37", "#D3D3D3"],
+    "weights": [2, 3, 1, 3],
+    "comment": "sourced from https://commons.wikimedia.org/wiki/File:Demiromantic_Pride_Flag.svg"
+  },
   "demiaroace": {
     "colors": ["#000000", "#FFFFFF", "#114b7d", "#D3D3D3"],
     "weights": [2, 3, 1, 3],
