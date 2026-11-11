@@ -208,9 +208,6 @@ pub fn neofetch_path() -> Result<PathBuf> {
             }
         }
     }
-    if let Ok(p) = which("neofetch") {
-        return Ok(p);
-    }
 
     // Instead of doing that, let's write the neofetch script to a temp file
     let f: PathBuf = get_cache_path().context("Failed to get cache path")?.join("nf_script.sh");
