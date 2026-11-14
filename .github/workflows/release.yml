@@ -338,7 +338,7 @@ jobs:
           path: dist
 
       - name: Publish distributions
-        uses: pypa/gh-action-pypi-publish@v1.14.0
+        uses: pypa/gh-action-pypi-publish@v1.14.3
         with:
           packages-dir: dist
           skip-existing: true
